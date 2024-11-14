@@ -279,9 +279,46 @@ void gen_rnd_mat(VECTOR v, int N){
 // extern void prova(params* input);
 
 void pst(params* input){
-	// --------------------------------------------------------------
-	// Codificare qui l'algoritmo di Predizione struttura terziaria
-	// --------------------------------------------------------------
+	int n = input->N;						// Da sistemare usando sizeof(array) / sizeof(array[0]);
+	int T = input->to;
+	int k = input->k;
+	int alpha = input->alpha;
+	VECTOR phi = gen_rnd_mat(phi, n);
+	VECTOR psi = gen_rnd_mat(psi, n);
+
+	type energy = NULL;
+
+	int t = 0;
+
+	while(T <= 0) {
+		int i = random() % (n + 1);						// Da controllare se è tra 0 e 1
+
+		delta_phi = (random()*2 * M_PI) - M_PI;
+		delta_psi = (random()*2 * M_PI) - M_PI;
+		
+		phi[i] = phi[i] + delta_phi;
+		psi[i] = psi[i] + delta_psi;
+
+		delta_energy = NULL;
+
+		if (delta_energy <= 0) {
+			energy = NULL;
+		} else {
+			type P = exp((-delta_energy) / (k * T));		// Attenzione alla funzione divisione
+			type r = random();								// Da controllare se è tra 0 e 1
+
+			if (r <= P {
+				energy = NULL;
+			} else {
+				phi[i] = phi[i] - delta_phi;
+				psi[i] = psi[i] - delta_psi;
+			}
+		}
+
+		t += 1;
+		T = to - sqrt(alpha * t);
+	}
+	return phi, psi;
 }
 
 int main(int argc, char** argv) {
