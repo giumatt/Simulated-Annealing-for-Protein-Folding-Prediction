@@ -278,37 +278,160 @@ void gen_rnd_mat(VECTOR v, int N){
 // PROCEDURE ASSEMBLY
 // extern void prova(params* input);
 
-void pst(params* input){
-	int n = input->N;						// Da sistemare usando sizeof(array) / sizeof(array[0]);
-	int T = input->to;
-	int k = input->k;
-	int alpha = input->alpha;
-	VECTOR phi = gen_rnd_mat(phi, n);
-	VECTOR psi = gen_rnd_mat(psi, n);
+type energy(char* seq, VECTOR phi, VECTOR psi) {
+	MATRIX *coords = backbone(seq, phi, psi);
 
-	type energy = NULL;
+	type rama_e = rama_energy(phi, psi);
+	type hydro_e = hydrophobic_energy(seq, coords);
+	type elec_e = electrostatic_energy(seq, coords);
+	type pack_e = packing_energy(seq, coords);
+
+	type w_rama = 1.0;
+	type w_hydro = 0.5;
+	type w_elec = 0.2;
+	type w_pack = 0.3;
+
+	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
+
+	return tot_e;
+}
+
+type packing_energy(char* seq, VECTOR coords, int N, VECTOR volume) {
+	type E = 0;
+
+	for(int i = 0; i < N; i++) {
+		type density = 0;
+		for(int j = 0; j < N; j++) {
+			if(i != j) {
+				type dist = sqrt(pow((coords[i] - coords[j]), 2));
+				if (dist < 10.0) {
+					density = density + (volume[seq[j]] / pow(dist, 3));
+				}
+			}
+		}
+		E = E + pow((volume[seq[i]] - density), 2);
+	}
+
+	return E;
+}
+
+type electrostatic_energy(char* seq, VECTOR coords, int N, VECTOR charge) {
+	type E = 0;
+
+	for(int i = 0; i < N; i++) {
+		type density = 0;
+		for(int j = i + 1; j < N; j++) {
+			// Abbiamo tolto l'if che controlla i != j
+			type dist = sqrt(pow((coords[i] - coords[j]), 2));
+			if ((dist < 10.0) && (charge[seq[i]] != 0.0) && (charge[seq[j]] != 0.0)) {
+				E = E + ((charge[seq[i]] * charge[seq[j]]) / (dist * 4.0));
+			}
+		}
+	}
+
+	return E;
+}
+
+type hydrophobic_energy(char* seq, VECTOR coords, int N, VECTOR hydrophobicity) {
+	type E = 0;
+
+	for(int i = 0; i < N; i++) {
+		for(int j = i + 1; j < N; j++) {
+			type dist = sqrt(pow((coords[i] - coords[j]), 2));
+			if (dist < 10.0) {
+				E = E + ((hydrophobicity[seq[i]] * hydrophobicity[seq[j]]) / (dist));
+			}
+		}
+	}
+
+	return E;
+}
+
+type rama_energy(VECTOR psi, VECTOR phi, int N) {
+	type alpha_psi = -47.0;
+	type alpha_phi = -57.8;
+	type beta_psi = 113.0;
+	type beta_phi = -119.0;
+
+	type E = 0;
+
+	for(int i = 0; i < N; i++) {
+		type alpha_dist = sqrt((pow((phi[i] - alpha_phi), 2) + (pow((psi[i] - alpha_psi), 2))));
+		type beta_dist = sqrt((pow((phi[i] - beta_phi), 2) + (pow((psi[i] - beta_psi), 2))));
+
+		type min = alpha_dist;
+		if (alpha_dist > beta_dist)
+			min = beta_dist;
+
+		E = E + (0.5 * min);
+	}
+
+	return E;
+}
+
+MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
+	type r_ca_n = 1.46;
+	type r_ca_c = 1.52;
+	type r_c_n = 1.33;
+
+	type theta_ca_c_n = 2.028;
+	type theta_c_n_ca = 2.124;
+	type theta_n_ca_c = 1.940;
+
+	// Da rivedere dimensione
+	MATRIX coords[3 * N][3];
+
+	// Da rivedere l'assegnamento
+	*coords[0] = (0, 0, 0);
+	*coords[1] = (r_ca_n, 0, 0);
+
+	for(int i = 0; i < N; i++) {
+		int idx = i * 3;
+
+		if (i > 0) {
+			// Dobbiamo fare sottrazioni tra colonne?
+		}
+		
+	}
+}
+
+void pst(params* input){
+	char* seq = input->seq;
+	int N = input->N;
+	int to = input->to;
+	int T = to;
+	int k = input->k;
+	type E = input->e;
+	int alpha = input->alpha;
+	VECTOR phi = input->phi;
+	VECTOR psi = input->psi;
+
+	gen_rnd_mat(phi, N);
+	gen_rnd_mat(psi, N);
+
+	type E = energy(seq, phi, psi);
 
 	int t = 0;
 
 	while(T <= 0) {
-		int i = random() % (n + 1);						// Da controllare se è tra 0 e 1
+		int i = rand() % (N + 1);						// Da controllare se è tra 0 e 1
 
-		delta_phi = (random()*2 * M_PI) - M_PI;
-		delta_psi = (random()*2 * M_PI) - M_PI;
+		type delta_phi = (random()*2 * M_PI) - M_PI;
+		type delta_psi = (random()*2 * M_PI) - M_PI;
 		
 		phi[i] = phi[i] + delta_phi;
 		psi[i] = psi[i] + delta_psi;
 
-		delta_energy = NULL;
+		type delta_energy = energy(seq, phi, psi) - E;
 
 		if (delta_energy <= 0) {
-			energy = NULL;
+			E = energy(seq, phi, psi);
 		} else {
 			type P = exp((-delta_energy) / (k * T));		// Attenzione alla funzione divisione
 			type r = random();								// Da controllare se è tra 0 e 1
 
-			if (r <= P {
-				energy = NULL;
+			if (r <= P) {
+				E = energy(seq, phi, psi);
 			} else {
 				phi[i] = phi[i] - delta_phi;
 				psi[i] = psi[i] - delta_psi;
