@@ -78,15 +78,15 @@ typedef struct {
 
 /*
 * 
-*	Le funzioni sono state scritte assumento che le matrici siano memorizzate 
+*	Le funzioni sono state scritte assumendo che le matrici siano memorizzate 
 * 	mediante un array (float*), in modo da occupare un unico blocco
 * 	di memoria, ma a scelta del candidato possono essere 
 * 	memorizzate mediante array di array (float**).
 * 
-* 	In entrambi i casi il candidato dovr� inoltre scegliere se memorizzare le
+* 	In entrambi i casi il candidato dovrà inoltre scegliere se memorizzare le
 * 	matrici per righe (row-major order) o per colonne (column major-order).
 *
-* 	L'assunzione corrente � che le matrici siano in row-major order.
+* 	L'assunzione corrente è che le matrici siano in row-major order.
 * 
 */
 
@@ -281,7 +281,7 @@ void gen_rnd_mat(VECTOR v, int N){
 type energy(char* seq, VECTOR phi, VECTOR psi) {
 	MATRIX *coords = backbone(seq, phi, psi);
 
-	type rama_e = rama_energy(phi, psi);
+	type rama_e = rama_energy(phi, psi, );
 	type hydro_e = hydrophobic_energy(seq, coords);
 	type elec_e = electrostatic_energy(seq, coords);
 	type pack_e = packing_energy(seq, coords);
@@ -347,7 +347,7 @@ type hydrophobic_energy(char* seq, VECTOR coords, int N, VECTOR hydrophobicity) 
 	return E;
 }
 
-type rama_energy(VECTOR psi, VECTOR phi, int N) {
+type rama_energy(VECTOR phi, VECTOR psi, int N) {
 	type alpha_psi = -47.0;
 	type alpha_phi = -57.8;
 	type beta_psi = 113.0;
@@ -369,6 +369,25 @@ type rama_energy(VECTOR psi, VECTOR phi, int N) {
 	return E;
 }
 
+// Funzione per normalizzare un vettore
+void normalize(VECTOR v, int n) {
+    type norm = 0.0;
+    for (int i = 0; i < n; i++) {
+        norm += v[i] * v[i];
+    }
+    norm = sqrt(norm);
+    for (int i = 0; i < n; i++) {
+        v[i] /= norm;
+    }
+}
+
+// Funzione per applicare la matrice di rotazione ad un vettore
+void apply_rotation(type* vec, type* rot) {
+    vec[0] = rot[0] * vec[0] + rot[1] * vec[1] + rot[2] * vec[2];
+    vec[1] = rot[3] * vec[0] + rot[4] * vec[1] + rot[5] * vec[2];
+    vec[2] = rot[6] * vec[0] + rot[7] * vec[1] + rot[8] * vec[2];
+}
+
 MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
 	type r_ca_n = 1.46;
 	type r_ca_c = 1.52;
@@ -379,19 +398,73 @@ MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
 	type theta_n_ca_c = 1.940;
 
 	// Da rivedere dimensione
-	MATRIX coords[3 * N][3];
+	type coords[3 * N * 3];
 
 	// Da rivedere l'assegnamento
-	*coords[0] = (0, 0, 0);
-	*coords[1] = (r_ca_n, 0, 0);
+	coords[0] = 0;
+	coords[1] = 0;
+	coords[2] = 0;
+
+	coords[3] = r_ca_n;
+	coords[4] = 0;
+	coords[5] = 0;
+
+	coords[6] = r_ca_n + r_ca_c;
+	coords[7] = 0;
+	coords[8] = 0;
+
+	// coords[1] = (r_ca_n, 0, 0);
+
+	// Support vectors
+	VECTOR v1;
+	VECTOR v2;
+	VECTOR v3;
+	MATRIX rot;
+
+	type newv[3];
+
+	newv[0] = 0.0;
+	newv[1] = r_c_n;
+	newv[2] = 0.0;
 
 	for(int i = 0; i < N; i++) {
 		int idx = i * 3;
 
 		if (i > 0) {
-			// Dobbiamo fare sottrazioni tra colonne?
+			// Parte di aggiornamento per l'atomo N
+			for (int j = 0; j < 3; j++) 
+				v1[j] = coords[idx - 1 + j] - coords[idx - 2 + j];
+			normalize(v1, 3);
+			rot = rotation();
+			apply_rotation(newv, rot);
+			for(int k = 0; k < 3; k++)
+				coords[idx * 3 + k] = coords[(idx - 1) * 3 + k] + newv[k];
+			
+			// Parte di aggiornamento per l'atomo C_a
+			for (int j = 0; j < 3; j++) 
+				v2[j] = coords[idx + j] - coords[idx - 1 + j];
+			normalize(v2, 3);
+			rot = rotation();
+			newv[0] = 0;
+			newv[1] = r_ca_n;
+			newv[2] = 0;
+			apply_rotation(newv, rot);
+			for(int k = 0; k < 3; k++)
+				coords[(idx + 1) * 3 + k] = coords[idx * 3 + k] + newv[k];
+			
+			// Parte di aggiornamento per l'atomo C
+			for (int j = 0; j < 3; j++) 
+				v3[j] = coords[idx + 1 + j] - coords[idx + j];
+			normalize(v3, 3);
+			rot = rotation();
+			newv[0] = 0;
+			newv[1] = r_ca_c;
+			newv[2] = 0;
+			apply_rotation(newv, rot);
+			for(int k = 0; k < 3; k++)
+				coords[(idx + 1) * 3 + k] = coords[idx * 3 + k] + newv[k];
 		}
-		
+		return coords;
 	}
 }
 
