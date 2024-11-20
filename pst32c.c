@@ -278,6 +278,17 @@ void gen_rnd_mat(VECTOR v, int N){
 // PROCEDURE ASSEMBLY
 // extern void prova(params* input);
 
+
+// Funzione per normalizzare un vettore
+type distance(VECTOR v, VECTOR w) {
+    type dist = 0.0;
+    for (int i = 0; i < 3; i++) {
+        dist += pow(v[i] - w[i], 2);
+    }
+    dist = (type)sqrt(dist);
+	return dist;
+}
+
 type energy(char* seq, VECTOR phi, VECTOR psi) {
 	MATRIX *coords = backbone(seq, phi, psi);
 
@@ -301,9 +312,11 @@ type packing_energy(char* seq, VECTOR coords, int N, VECTOR volume) {
 
 	for(int i = 0; i < N; i++) {
 		type density = 0;
+		VECTOR v = &coords[i * 3];
 		for(int j = 0; j < N; j++) {
 			if(i != j) {
-				type dist = sqrt(pow((coords[i] - coords[j]), 2));
+				VECTOR w = &coords[j * 3];
+				type dist = distance(v, w);
 				if (dist < 10.0) {
 					density = density + (volume[seq[j]] / pow(dist, 3));
 				}
@@ -319,10 +332,12 @@ type electrostatic_energy(char* seq, VECTOR coords, int N, VECTOR charge) {
 	type E = 0;
 
 	for(int i = 0; i < N; i++) {
+		VECTOR v = &coords[i * 3];
 		type density = 0;
 		for(int j = i + 1; j < N; j++) {
+			VECTOR w = &coords[j * 3];
 			// Abbiamo tolto l'if che controlla i != j
-			type dist = sqrt(pow((coords[i] - coords[j]), 2));
+			type dist = distance(v, w);
 			if ((dist < 10.0) && (charge[seq[i]] != 0.0) && (charge[seq[j]] != 0.0)) {
 				E = E + ((charge[seq[i]] * charge[seq[j]]) / (dist * 4.0));
 			}
@@ -336,8 +351,12 @@ type hydrophobic_energy(char* seq, VECTOR coords, int N, VECTOR hydrophobicity) 
 	type E = 0;
 
 	for(int i = 0; i < N; i++) {
+		VECTOR v = &coords[i * 3];			// Primo atomo C_alpha
 		for(int j = i + 1; j < N; j++) {
-			type dist = sqrt(pow((coords[i] - coords[j]), 2));
+			VECTOR w = &coords[j * 3];		// Secondo atomo C_alpha
+			//type dist = sqrt(pow((coords[i] - coords[j]), 2));
+			type dist = distance(v, w);
+
 			if (dist < 10.0) {
 				E = E + ((hydrophobicity[seq[i]] * hydrophobicity[seq[j]]) / (dist));
 			}
@@ -409,9 +428,9 @@ MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
 	coords[4] = 0;
 	coords[5] = 0;
 
-	coords[6] = r_ca_n + r_ca_c;
-	coords[7] = 0;
-	coords[8] = 0;
+	// coords[6] = r_ca_n + r_ca_c;
+	// coords[7] = 0;
+	// coords[8] = 0;
 
 	// coords[1] = (r_ca_n, 0, 0);
 
@@ -451,19 +470,20 @@ MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
 			apply_rotation(newv, rot);
 			for(int k = 0; k < 3; k++)
 				coords[(idx + 1) * 3 + k] = coords[idx * 3 + k] + newv[k];
-			
-			// Parte di aggiornamento per l'atomo C
-			for (int j = 0; j < 3; j++) 
-				v3[j] = coords[idx + 1 + j] - coords[idx + j];
-			normalize(v3, 3);
-			rot = rotation();
-			newv[0] = 0;
-			newv[1] = r_ca_c;
-			newv[2] = 0;
-			apply_rotation(newv, rot);
-			for(int k = 0; k < 3; k++)
-				coords[(idx + 1) * 3 + k] = coords[idx * 3 + k] + newv[k];
 		}
+
+		// Parte di aggiornamento per l'atomo C
+		for (int j = 0; j < 3; j++) 
+			v3[j] = coords[idx + 1 + j] - coords[idx + j];
+		normalize(v3, 3);
+		rot = rotation();
+		newv[0] = 0;
+		newv[1] = r_ca_c;
+		newv[2] = 0;
+		apply_rotation(newv, rot);
+		for(int k = 0; k < 3; k++)
+			coords[(idx + 1) * 3 + k] = coords[idx * 3 + k] + newv[k];
+		
 		return coords;
 	}
 }
