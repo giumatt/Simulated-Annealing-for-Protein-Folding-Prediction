@@ -55,17 +55,17 @@
 
 // Definizione delle nostre funzioni
 type distance(VECTOR, VECTOR);
-type energy(params*);
-type packing_energy(params*, MATRIX, VECTOR);
-type electrostatic_energy(params*, MATRIX, VECTOR);
-type hydrophobic_energy(params*, MATRIX, VECTOR);
-type rama_energy(params*);
+type energy(char*, VECTOR, VECTOR, int);
+type packing_energy(char*, MATRIX, int, type*);
+type electrostatic_energy(char*, MATRIX, int, type*);
+type hydrophobic_energy(char*, MATRIX, int, type*);
+type rama_energy(VECTOR, VECTOR, int);
 void normalize(VECTOR, int);
 type cosine(type);
 type sine(type);
 MATRIX rotation(VECTOR, type);
 void apply_rotation(VECTOR, MATRIX);
-MATRIX backbone(params*);
+MATRIX backbone(char*, VECTOR, VECTOR, int);
 
 type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};		// hydrophobicity
 type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};		// volume
@@ -301,15 +301,18 @@ type distance(VECTOR v, VECTOR w) {
 	return dist;
 }
 
-type energy(params* input) {
-	//MATRIX *coords = backbone(seq, phi, psi, N);
+type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
+	
+	MATRIX coords = alloc_matrix(3 * N, 3);
 
-	MATRIX *coords = backbone(input);
+	coords = backbone(seq, phi, psi, N);
 
-	type rama_e = rama_energy(input);
-	type hydro_e = hydrophobic_energy(input, coords, hydrophobicity);
-	type elec_e = electrostatic_energy(input, coords, charge);
-	type pack_e = packing_energy(input, coords, volume);
+	//MATRIX *coords = backbone(input);
+
+	type rama_e = rama_energy(phi, psi, N);
+	type hydro_e = hydrophobic_energy(seq, coords, N, hydrophobicity);
+	type elec_e = electrostatic_energy(seq, coords, N, charge);
+	type pack_e = packing_energy(seq, coords, N, volume);
 
 	type w_rama = 1.0f;
 	type w_hydro = 0.5f;
@@ -321,39 +324,39 @@ type energy(params* input) {
 	return tot_e;
 }
 
-type packing_energy(params* input, MATRIX coords, VECTOR volume) {
+type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
 	type E = 0;
 
-	for(int i = 0; i < input->N; i++) {
+	for(int i = 0; i < N; i++) {
 		type density = 0;
 		VECTOR v = &coords[i * 3];
-		for(int j = 0; j < input->N; j++) {
+		for(int j = 0; j < N; j++) {
 			if(i != j) {
 				VECTOR w = &coords[j * 3];
 				type dist = distance(v, w);
 				if (dist < 10.0f) {
-					density = density + (volume[input->seq[j]] / (pow(dist, 3)));
+					density = density + (volume[seq[j]] / (pow(dist, 3)));
 				}
 			}
 		}
-		E = E + pow((volume[input->seq[i]] - density), 2);
+		E = E + pow((volume[seq[i]] - density), 2);
 	}
 
 	return E;
 }
 
-type electrostatic_energy(params* input, MATRIX coords, VECTOR charge) {
+type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
 	type E = 0;
 
-	for(int i = 0; i < input->N; i++) {
+	for(int i = 0; i < N; i++) {
 		VECTOR v = &coords[i * 3];
 		type density = 0;
-		for(int j = i + 1; j < input->N; j++) {
+		for(int j = i + 1; j < N; j++) {
 			VECTOR w = &coords[j * 3];
 			// Abbiamo tolto l'if che controlla i != j
 			type dist = distance(v, w);
-			if ((dist < 10.0f) && (charge[input->seq[i]] != 0.0f) && (charge[input->seq[j]] != 0.0f)) {
-				E = E + ((charge[input->seq[i]] * charge[input->seq[j]]) / (dist * 4.0f));
+			if ((dist < 10.0f) && (charge[seq[i]] != 0.0f) && (charge[seq[j]] != 0.0f)) {
+				E = E + ((charge[seq[i]] * charge[seq[j]]) / (dist * 4.0f));
 			}
 		}
 	}
@@ -361,18 +364,18 @@ type electrostatic_energy(params* input, MATRIX coords, VECTOR charge) {
 	return E;
 }
 
-type hydrophobic_energy(params* input, MATRIX coords, VECTOR hydrophobicity) {
+type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
 	type E = 0;
 
-	for(int i = 0; i < input->N; i++) {
+	for(int i = 0; i < N; i++) {
 		VECTOR v = &coords[i * 3];			// Primo atomo C_alpha
-		for(int j = i + 1; j < input->N; j++) {
+		for(int j = i + 1; j < N; j++) {
 			VECTOR w = &coords[j * 3];		// Secondo atomo C_alpha
 			//type dist = sqrt(pow((coords[i] - coords[j]), 2));
 			type dist = distance(v, w);
 
 			if (dist < 10.0f) {
-				E = E + ((hydrophobicity[input->seq[i]] * hydrophobicity[input->seq[j]]) / (dist));
+				E = E + ((hydrophobicity[seq[i]] * hydrophobicity[seq[j]]) / (dist));
 			}
 		}
 	}
@@ -380,7 +383,7 @@ type hydrophobic_energy(params* input, MATRIX coords, VECTOR hydrophobicity) {
 	return E;
 }
 
-type rama_energy(params* input) {
+type rama_energy(VECTOR phi, VECTOR psi, int N) {
 	type alpha_psi = -47.0f;
 	type alpha_phi = -57.8f;
 	type beta_psi = 113.0f;
@@ -388,9 +391,9 @@ type rama_energy(params* input) {
 
 	type E = 0;
 
-	for(int i = 0; i < input->N; i++) {
-		type alpha_dist = sqrtf((pow((input->phi[i] - alpha_phi), 2) + (pow((input->psi[i] - alpha_psi), 2))));
-		type beta_dist = sqrtf((pow((input->phi[i] - beta_phi), 2) + (pow((input->psi[i] - beta_psi), 2))));
+	for(int i = 0; i < N; i++) {
+		type alpha_dist = sqrtf((pow((phi[i] - alpha_phi), 2) + (pow((psi[i] - alpha_psi), 2))));
+		type beta_dist = sqrtf((pow((phi[i] - beta_phi), 2) + (pow((psi[i] - beta_psi), 2))));
 
 		type min = alpha_dist;
 		if (alpha_dist > beta_dist)
@@ -404,17 +407,17 @@ type rama_energy(params* input) {
 
 // Funzione per normalizzare un vettore
 void normalize(VECTOR v, int n) {
-    type norm;
+    type norm = 0;
     for (int i = 0; i < n; i++) {
         norm += v[i] * v[i];
     }
     norm = sqrtf(norm);
 
-	// !!! Aggiungere controllo se norm != 0 !!!
-
-    for (int i = 0; i < n; i++) {
-        v[i] /= norm;
-    }
+	if (norm != 0) {
+    	for (int i = 0; i < n; i++) {
+        	v[i] /= norm;
+    	}
+	}
 }
 
 type cosine(type theta) {
@@ -430,9 +433,12 @@ type sine(type theta) {
 }
 
 MATRIX rotation(VECTOR axis, type theta) {
-	MATRIX rot = calloc(3, 3);
+	MATRIX rot = alloc_matrix(3, 3);
 
-	type scalar = pow(axis[0], 2) + pow(axis[1], 2) + pow(axis[2], 2);
+	for(int i = 0; i < 9; i++)
+		rot[i] = 0;
+
+	type scalar = sqrtf(pow(axis[0], 2) + pow(axis[1], 2) + pow(axis[2], 2));
 	for(int i = 0; i < 3; i++) {
 		axis[i] = axis[i] / scalar;
 	}
@@ -455,6 +461,8 @@ MATRIX rotation(VECTOR axis, type theta) {
 	rot[7] = (2.0f) * ((bcd[1]) * (bcd[2]) - (a * bcd[0]));
 	rot[8] = (pow(a, 2)) + (pow(bcd[2], 2)) - (pow(bcd[0], 2)) - (pow(bcd[1], 2));
 
+	dealloc_matrix(bcd);
+
 	return rot;
 }
 
@@ -466,7 +474,7 @@ void apply_rotation(VECTOR vec, MATRIX rot) {
 }
 
 // MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
-MATRIX backbone(params* input) {
+MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 	type r_ca_n = 1.46f;
 	type r_ca_c = 1.52f;
 	type r_c_n = 1.33f;
@@ -477,7 +485,7 @@ MATRIX backbone(params* input) {
 
 	// Da rivedere dimensione
 	// MATRIX coords[3 * input->N * 3];
-	MATRIX coords = alloc_matrix(3 * input->N, 3);
+	MATRIX coords = alloc_matrix(3 * N, 3);
 
 	// Da rivedere l'assegnamento
 	coords[0] = 0;
@@ -507,7 +515,7 @@ MATRIX backbone(params* input) {
 	newv[1] = r_c_n;		// !
 	newv[2] = 0;
 
-	for(int i = 0; i < input->N; i++) {
+	for(int i = 0; i < N; i++) {
 		int idx = i * 3;
 
 		if (i > 0) {
@@ -524,7 +532,7 @@ MATRIX backbone(params* input) {
 			for (int j = 0; j < 3; j++) 
 				v2[j] = coords[idx + j] - coords[(idx - 1) + j];
 			normalize(v2, 3);
-			rot = rotation(v2, input->phi[i]);
+			rot = rotation(v2, phi[i]);
 			newv[0] = 0;
 			newv[1] = r_ca_n;		// !
 			newv[2] = 0;
@@ -537,7 +545,7 @@ MATRIX backbone(params* input) {
 		for (int j = 0; j < 3; j++) 
 			v3[j] = coords[idx + 1 + j] - coords[idx + j];
 		normalize(v3, 3);
-		rot = rotation(v3, input->psi[i]);
+		rot = rotation(v3, psi[i]);
 		newv[0] = 0;
 		newv[1] = r_ca_c;
 		newv[2] = 0;
@@ -571,7 +579,7 @@ void pst(params* input){
 	gen_rnd_mat(input->phi, input->N);
 	gen_rnd_mat(input->psi, input->N);
 
-	type E = energy(input);
+	type E = energy(input->seq, phi, psi, input->N);
 
 	int t = 0;
 
@@ -584,16 +592,16 @@ void pst(params* input){
 		phi[i] = phi[i] + delta_phi;
 		psi[i] = psi[i] + delta_psi;
 
-		type delta_energy = energy(input) - E;
+		type delta_energy = energy(input->seq, phi, psi, input->N) - E;
 
 		if (delta_energy <= 0) {
-			E = energy(input);
+			E = energy(input->seq, phi, psi, input->N);
 		} else {
 			type P = (type)(exp((-delta_energy) / (input->k * T)));		// Attenzione alla funzione divisione
 			type r = random();								// Da controllare se è tra 0 e 1
 
 			if (r <= P) {
-				E = energy(input);
+				E = energy(input->seq, phi, psi, input->N);
 			} else {
 				phi[i] = phi[i] - delta_phi;
 				psi[i] = psi[i] - delta_psi;
@@ -603,7 +611,6 @@ void pst(params* input){
 		t += 1;
 		T = to - sqrtf(input->alpha * t);
 	}
-	return phi, psi;
 }
 
 int main(int argc, char** argv) {
