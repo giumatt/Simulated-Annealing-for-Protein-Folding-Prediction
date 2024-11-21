@@ -53,6 +53,20 @@
 
 #define random() (((type) rand())/RAND_MAX)
 
+// Definizione delle nostre funzioni
+type distance(VECTOR, VECTOR);
+type energy(params*);
+type packing_energy(params*, MATRIX, VECTOR);
+type electrostatic_energy(params*, MATRIX, VECTOR);
+type hydrophobic_energy(params*, MATRIX, VECTOR);
+type rama_energy(params*);
+void normalize(VECTOR, int);
+type cosine(type);
+type sine(type);
+MATRIX rotation(VECTOR, type);
+void apply_rotation(VECTOR, MATRIX);
+MATRIX backbone(params*);
+
 type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};		// hydrophobicity
 type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};		// volume
 type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};		// charge
@@ -445,7 +459,7 @@ MATRIX rotation(VECTOR axis, type theta) {
 }
 
 // Funzione per applicare la matrice di rotazione ad un vettore
-void apply_rotation(type* vec, type* rot) {
+void apply_rotation(VECTOR vec, MATRIX rot) {
     vec[0] = (rot[0] * vec[0]) + (rot[1] * vec[1]) + (rot[2] * vec[2]);
     vec[1] = (rot[3] * vec[0]) + (rot[4] * vec[1]) + (rot[5] * vec[2]);
     vec[2] = (rot[6] * vec[0]) + (rot[7] * vec[1]) + (rot[8] * vec[2]);
