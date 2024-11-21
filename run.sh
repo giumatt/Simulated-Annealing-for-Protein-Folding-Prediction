@@ -1,0 +1,1 @@
+runpst32 -seq psi_256_to20_k1_alpha1_sd3.ds2 -to 20 -k 1 -alpha 1 -sd 3
