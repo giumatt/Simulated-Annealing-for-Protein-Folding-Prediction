@@ -295,10 +295,10 @@ void gen_rnd_mat(VECTOR v, int N){
 type distance(VECTOR v, VECTOR w) {
     type dist = 0.0;
     for (int i = 0; i < 3; i++) {
-        dist += pow(v[i] - w[i], 2);
+        type diff = v[i] - w[i];
+		dist += diff * diff;
     }
-    dist = sqrtf(dist);
-	return dist;
+	return (type)sqrtf(dist);
 }
 
 type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
@@ -306,13 +306,23 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	MATRIX coords = alloc_matrix(3 * N, 3);
 
 	coords = backbone(seq, phi, psi, N);
+	for(int i = 0; i < N; i++)
+		for(int j = 0; j < 3; j ++) {
+			printf("Coords at position [%d, %d] is: %.3f\n", i, j, coords[(i) * 3 + j]);
+			printf("Coords at position [%d, %d] is: %.3f\n", i, j, coords[(i) * 3 + j]);
+			printf("Coords at position [%d, %d] is: %.3f\n", i, j, coords[(i) * 3 + j]);
+		}
 
 	//MATRIX *coords = backbone(input);
 
 	type rama_e = rama_energy(phi, psi, N);
+	printf("Rama_e: %.3f\n", rama_e);
 	type hydro_e = hydrophobic_energy(seq, coords, N, hydrophobicity);
+	printf("Hydro %.3f\n", hydro_e);
 	type elec_e = electrostatic_energy(seq, coords, N, charge);
+	printf("Elec: %.3f\n", hydro_e);
 	type pack_e = packing_energy(seq, coords, N, volume);
+	printf("Pack_e: %.3f\n", pack_e);
 
 	type w_rama = 1.0f;
 	type w_hydro = 0.5f;
@@ -320,28 +330,44 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	type w_pack = 0.3f;
 
 	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
-
+	printf("TOT_E: %.3f\n", tot_e);
 	return tot_e;
 }
 
 type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
 	type E = 0;
-
+	// printf("\nPACKING ENERGY:\n");
 	for(int i = 0; i < N; i++) {
 		type density = 0;
 		VECTOR v = &coords[i * 3];
+		// printf("V: %.3f\n", v[i]);
+		// printf("Coords %d: %.3f\n", i, coords[i * 3])
 		for(int j = 0; j < N; j++) {
 			if(i != j) {
-				VECTOR w = &coords[j * 3];
+				VECTOR w = &coords[(j * 3)];				// !
+				//printf("W: %.3f\n", w[i]);
 				type dist = distance(v, w);
-				if (dist < 10.0f) {
-					density = density + (volume[seq[j]] / (pow(dist, 3)));
+				// printf("\nDistance: %.3f\n", dist);		
+				if ((dist > 1e-6) && (dist < 10.0f)) {
+					density += (volume[seq[j]] / (dist * dist * dist));
+					// printf("\n");
+					// printf("Volume %d: %.3f\n", j, volume[seq[j]]);
+					// printf("Seq %d: %c\n", j, seq[j]);
+					//printf("\n");
+					//printf("Density: %.3f\n", density);
 				}
 			}
 		}
-		E = E + pow((volume[seq[i]] - density), 2);
+		// printf("\nDistance: %.3f\n", distance);
+		type diff = volume[seq[i]] - density;
+		// printf("\n");
+		// printf("Volume %d: %.3f\n", i, volume[seq[i]]);
+		E += diff * diff;
+		// E = E + pow((volume[seq[i]] - density), 2);
+		// printf("\n");
+		// printf("Energy: %.3f\n", E);
+		// ! volume[seq[j]] e volume[seq[i]] stampano le stesse cose 
 	}
-
 	return E;
 }
 
@@ -520,13 +546,22 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 		if (i > 0) {
 			// Parte di aggiornamento per l'atomo N
-			for (int j = 0; j < 3; j++) 
+			for (int j = 0; j < 3; j++) {
 				v1[j] = coords[idx - 1 + j] - coords[idx - 2 + j];
+				// printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
+				// printf("idx: %d\n", idx);
+			}
 			normalize(v1, 3);
+			//for (int j = 0; j < 3; j++)
+				// printf("After normalization v1[%d, %d] is: %.3f\n", i, j, v1[j]);
 			rot = rotation(v1, theta_c_n_ca);
 			apply_rotation(newv, rot);
-			for(int k = 0; k < 3; k++)
+			// for (int j = 0; j < 3; j++)
+				// printf("After applying rotation newv[%d, %d] is: %.3f\n", i, j, newv[j]);
+			for(int k = 0; k < 3; k++) {
 				coords[(idx * 3) + k] = coords[(idx - 1) * 3 + k] + (newv[k]);
+				// printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[(idx * 3) + k]);
+			}
 			
 			// Parte di aggiornamento per l'atomo C_a
 			for (int j = 0; j < 3; j++) 
@@ -537,8 +572,11 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 			newv[1] = r_ca_n;		// !
 			newv[2] = 0;
 			apply_rotation(newv, rot);
-			for(int k = 0; k < 3; k++)
+			for(int k = 0; k < 3; k++) {
 				coords[(idx + 1) * 3 + k] = coords[(idx * 3) + k] + newv[k];
+				// printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[k]);
+				// printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[(idx + 1) * 3 + k]);
+			}
 		}
 
 		// Parte di aggiornamento per l'atomo C
@@ -550,8 +588,13 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 		newv[1] = r_ca_c;
 		newv[2] = 0;
 		apply_rotation(newv, rot);
-		for(int k = 0; k < 3; k++)
+		for(int k = 0; k < 3; k++) {
 			coords[((idx + 2) * 3) + k] = coords[((idx + 1) * 3) + k] + newv[k];
+			// printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[((idx + 2) * 3) + k]);
+			// int ciao = 0;
+			// ciao++;
+		}
+
 	}
 
 	return coords;

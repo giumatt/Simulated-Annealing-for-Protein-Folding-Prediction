@@ -1,3 +1,6 @@
 C_calling_conventions.pdf
 .DS_Store
 .vscode/
+out32_256_3_*.ds2
+*.o
+pst32c
