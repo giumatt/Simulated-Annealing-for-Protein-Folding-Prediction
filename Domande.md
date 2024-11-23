@@ -5,5 +5,6 @@
 4. La sottrazione dei vettori è C - C_a o C_a - C?
 5. Come dobbiamo definire coords[6]?
 6. L'if comprende anche l'aggiornamento di C? Nella funzione backbone
+7. Come ci entriamo nel while della pst se t0 è sempre maggiore di 0 (e il while è T <= 0)?
 
 ###### Noi non abbiamo s come argomento della backbone ma non lo usiamo lì dentro!
