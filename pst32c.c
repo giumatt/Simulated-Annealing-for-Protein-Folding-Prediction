@@ -67,6 +67,8 @@ MATRIX rotation(VECTOR, type);
 void apply_rotation(VECTOR, MATRIX);
 MATRIX backbone(char*, VECTOR, VECTOR, int);
 
+int amino_index(char);
+
 type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};		// hydrophobicity
 type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};		// volume
 type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};		// charge
@@ -306,12 +308,7 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	MATRIX coords = alloc_matrix(3 * N, 3);
 
 	coords = backbone(seq, phi, psi, N);
-	for(int i = 0; i < N; i++)
-		for(int j = 0; j < 3; j ++) {
-			printf("Coords at position [%d, %d] is: %.3f\n", i, j, coords[(i) * 3 + j]);
-			printf("Coords at position [%d, %d] is: %.3f\n", i, j, coords[(i) * 3 + j]);
-			printf("Coords at position [%d, %d] is: %.3f\n", i, j, coords[(i) * 3 + j]);
-		}
+			
 
 	//MATRIX *coords = backbone(input);
 
@@ -334,32 +331,47 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	return tot_e;
 }
 
+/*
 type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
 	type E = 0;
 	// printf("\nPACKING ENERGY:\n");
+	VECTOR v = alloc_matrix(1, 3);
+	VECTOR w = alloc_matrix(1, 3);
 	for(int i = 0; i < N; i++) {
 		type density = 0;
-		VECTOR v = &coords[i * 3];
-		// printf("V: %.3f\n", v[i]);
-		// printf("Coords %d: %.3f\n", i, coords[i * 3])
+		
+		for (int k = 0; k < 3; k++) {
+        	v[k] = coords[(k + i + 1)*3];
+    	}
+		
+		//v[i] = coords[(i +1)*3];
+		
+		
 		for(int j = 0; j < N; j++) {
 			if(i != j) {
-				VECTOR w = &coords[(j * 3)];				// !
-				//printf("W: %.3f\n", w[i]);
+				//w[j] = coords[((j+1) * 3)];				// !
+				for (int k = 0; k < 3; k++) {
+        			w[k] = coords[(k + j + 1)*3];
+    			}
+				//printf("V: %.3f, coord[%f]+ %d\n", v[i], coords[(i +1)*3], i);
+				//printf("W: %.3f coord[%f]+ %d\n", w[j], coords[(j +1)*3], j);
 				type dist = distance(v, w);
-				// printf("\nDistance: %.3f\n", dist);		
+				//printf("\nDistance: %.3f\n", dist);		
 				if ((dist > 1e-6) && (dist < 10.0f)) {
-					density += (volume[seq[j]] / (dist * dist * dist));
-					// printf("\n");
-					// printf("Volume %d: %.3f\n", j, volume[seq[j]]);
-					// printf("Seq %d: %c\n", j, seq[j]);
-					//printf("\n");
-					//printf("Density: %.3f\n", density);
+					int aminoacido = amino_index(seq[j]);
+						if(aminoacido >=0){
+							density += (volume[aminoacido] / (dist * dist * dist));
+							// printf("\n");
+							//printf("Volume %d: %.3f\n", j, volume[seq[j]]);
+							printf("%c",  aminoacido);
+							//printf("\n");
+							//printf("Density: %.3f\n", density);
+					}
 				}
 			}
 		}
 		// printf("\nDistance: %.3f\n", distance);
-		type diff = volume[seq[i]] - density;
+		type diff = volume[(unsigned char)seq[i]] - density;
 		// printf("\n");
 		// printf("Volume %d: %.3f\n", i, volume[seq[i]]);
 		E += diff * diff;
@@ -369,6 +381,69 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
 		// ! volume[seq[j]] e volume[seq[i]] stampano le stesse cose 
 	}
 	return E;
+}
+*/
+type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
+    type E = 0;
+    VECTOR v = alloc_matrix(1, 3); // Alloca un vettore 3D per il punto v
+    VECTOR w = alloc_matrix(1, 3); // Alloca un vettore 3D per il punto w
+
+    for (int i = 0; i < N; i++) {
+        type density = 0;
+
+        // Copia le coordinate del punto `i` in `v`
+        for (int k = 0; k < 3; k++) {
+            v[k] = coords[(k + i + 1)*3];
+        }
+
+        for (int j = 0; j < N; j++) {
+            if (i != j) {
+                // Copia le coordinate del punto `j` in `w`
+                for (int k = 0; k < 3; k++) {
+                    w[k] = coords[(k + j + 1)*3];
+                }
+
+                type dist = distance(v, w); // Calcola la distanza tra `v` e `w`
+
+                if ((dist > 1e-6) && (dist < 10.0f)) {
+                    int aminoacido = amino_index(seq[j]);
+                    if (aminoacido >= 0) {
+                        density += (volume[aminoacido] / (dist * dist * dist));
+                        // Debug: stampa informazioni utili
+                        printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f\n",
+                               seq[j], aminoacido, volume[aminoacido], density);
+                    }
+                }
+            }
+        }
+
+        // Calcola la differenza di densità
+        int aminoacido_i = amino_index(seq[i]);
+        if (aminoacido_i >= 0) {
+            type diff = volume[aminoacido_i] - density;
+            E += diff * diff; // Aggiungi il contributo all'energia totale
+        }
+    }
+
+    free(v); // Libera la memoria allocata per `v`
+    free(w); // Libera la memoria allocata per `w`
+
+    return E;
+}
+
+int amino_index(char amino) {
+    // Array di amminoacidi standard in ordine
+    const char amino_acids[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const int num_amino_acids = 20; // Numero di amminoacidi standard
+
+    for (int i = 0; i < num_amino_acids; i++) {
+        if (amino_acids[i] == amino  && volume[i] !=-1) {
+            return i; // Ritorna l'indice corrispondente
+        }
+    }
+
+    // Se non trovato, stampa un messaggio di errore e ritorna -1
+    return -1;
 }
 
 type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
@@ -521,6 +596,7 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 	coords[3] = r_ca_n;
 	coords[4] = 0;
 	coords[5] = 0;
+	
 
 	// coords[6] = r_ca_n + r_ca_c;
 	// coords[7] = 0;
@@ -590,10 +666,11 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 		apply_rotation(newv, rot);
 		for(int k = 0; k < 3; k++) {
 			coords[((idx + 2) * 3) + k] = coords[((idx + 1) * 3) + k] + newv[k];
-			// printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[((idx + 2) * 3) + k]);
-			// int ciao = 0;
-			// ciao++;
+		
 		}
+	
+
+	
 
 	}
 
