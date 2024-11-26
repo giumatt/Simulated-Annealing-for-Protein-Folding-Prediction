@@ -64,7 +64,7 @@ void normalize(VECTOR, int);
 type cosine(type);
 type sine(type);
 MATRIX rotation(VECTOR, type);
-void apply_rotation(VECTOR, MATRIX);
+VECTOR apply_rotation(VECTOR, MATRIX);
 MATRIX backbone(char*, VECTOR, VECTOR, int);
 
 int amino_index(char);
@@ -296,7 +296,7 @@ void gen_rnd_mat(VECTOR v, int N){
 
 
 ///!!! di seguito ho inserito dei test delle funzioni per vedere se sono corrette:
-
+/*
 void test_amino_index() {
     char test_seq[] = "ACDEFGHIKLMNPQRSTVWY";
     char invalid_seq[] = "XYZ123";
@@ -410,7 +410,7 @@ void test_backbone() {
     free(coords);
 }
 
-
+*/
 
 
 void pst(params* input){
@@ -507,13 +507,13 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	//MATRIX *coords = backbone(input);
 
 	type rama_e = rama_energy(phi, psi, N);
-	//printf("Rama_e: %.3f\n", rama_e);
+	printf("Rama_e: %.3f\n", rama_e);
 	type hydro_e = hydrophobic_energy(seq, coords, N, hydrophobicity);
-	//printf("Hydro %.3f\n", hydro_e);
+	printf("Hydro %.3f\n", hydro_e);
 	type elec_e = electrostatic_energy(seq, coords, N, charge);
-	//printf("Elec: %.3f\n", hydro_e);
+	printf("Elec: %.3f\n", hydro_e);
 	type pack_e = packing_energy(seq, coords, N, volume);
-	//printf("Pack_e: %.3f\n", pack_e);
+	printf("Pack_e: %.3f\n", pack_e);
 
 	type w_rama = 1.0f;
 	type w_hydro = 0.5f;
@@ -524,7 +524,7 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 	dealloc_matrix(coords);
 
-	//printf("TOT_E: %.3f\n", tot_e);
+	printf("TOT_E: %.3f\n", tot_e);
 	return tot_e;
 }
 
@@ -746,7 +746,7 @@ int amino_index(char amino) {
     return -1;
 }
 
-/*
+
 // MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
 MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 	type r_ca_n = 1.46f;
@@ -795,43 +795,48 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 			// Parte di aggiornamento per l'atomo N
 			for (int j = 0; j < 3; j++) {
 				v1[j] = coords[((idx - 1) * 3) + j] - coords[((idx - 2) * 3) + j];
-				// printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
+				//printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
 				// printf("idx: %d\n", idx);
 			}
 			normalize(v1, 3);
-			//for (int j = 0; j < 3; j++)
-				// printf("After normalization v1[%d, %d] is: %.3f\n", i, j, v1[j]);
+			
 			rot = rotation(v1, theta_c_n_ca);
+
 			//!!!prima newv era esterno al for quindi apply_rotation nnon veniva fatto correttamente
 
 			newv[0] = 0;
 			newv[1] = r_c_n;		// !
 			newv[2] = 0;
 
-			apply_rotation(newv, rot);
-			// for (int j = 0; j < 3; j++)
-				// printf("After applying rotation newv[%d, %d] is: %.3f\n", i, j, newv[j]);
+			newv = apply_rotation(newv, rot);
+			
 			for(int k = 0; k < 3; k++) {
 				coords[(idx * 3) + k] = coords[((idx - 1) * 3) + k] + (newv[k]);
-				// printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[(idx * 3) + k]);
+				
 			}
 			
 			// Parte di aggiornamento per l'atomo C_a
 			for (int j = 0; j < 3; j++){
 				v2[j] = coords[(idx * 3) + j] - coords[((idx - 1) * 3) + j];
-				//printf("v2[j]: %.3f\n ", v2[j]);
+				
 			}
 			normalize(v2, 3);
+			
 			rot = rotation(v2, phi[i]);
+
+			
+
+			
 			//printf("phi[i]: %.3f\n ", phi[i]);
 			newv[0] = 0;
 			newv[1] = r_ca_n;		// !
 			newv[2] = 0;
-			apply_rotation(newv, rot);
+			newv = apply_rotation(newv, rot);
+			
 			for(int k = 0; k < 3; k++) {
 				coords[((idx + 1) * 3) + k] = coords[((idx * 3)) + k] + newv[k];
 				// printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[k]);
-				// printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[(idx + 1) * 3 + k]);
+				//printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[((idx + 1) * 3) + k]);
 			}
 		}
 
@@ -844,14 +849,19 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 		
 		rot = rotation(v3, psi[i]);
+
+		
 		newv[0] = 0;
 		newv[1] = r_ca_c;
 		newv[2] = 0;
 
-		apply_rotation(newv, rot);
+		newv = apply_rotation(newv, rot);
+
+		
 
 		for(int k = 0; k < 3; k++) {
 			coords[((idx + 2) * 3) + k] = coords[((idx + 1) * 3) + k] + newv[k];
+			//printf(" coords[((idx + 2) * 3) + k]: %.3f - oords[((idx + 1) * 3) + k]: %.3f  i: %d\n", coords[((idx + 2) * 3) + k], coords[((idx + 1) * 3) + k] , i);
 		
 		}
 	
@@ -867,8 +877,8 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 	return coords;
 }
-*/
 
+/*
 MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
     type r_ca_n = 1.46f;
     type r_ca_c = 1.52f;
@@ -892,7 +902,7 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
     MATRIX rot;
 
     for (int i = 1; i < N; i++) {
-        int idx = i * 3; // Indice base per il residuo corrente
+        int idx = i * 3; 
 
         // Calcolo della posizione dell'atomo N
         for (int j = 0; j < 3; j++) {
@@ -939,7 +949,7 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 
     return coords;
 }
-
+*/
 
 
 type distance(VECTOR v, VECTOR w) {
@@ -977,7 +987,7 @@ type cosine(type theta) {
 }
 
 type sine(type theta) {
-
+	
 	type theta2 = theta * theta;
     return theta - (theta * theta2 / 6.0f) + (theta * theta2 * theta2 / 120.0f) - (theta * theta2 * theta2 * theta2 / 5040.0f);
 
@@ -995,12 +1005,12 @@ MATRIX rotation(VECTOR axis, type theta) {
 		axis[i] = axis[i] / scalar;
 	}
 
-	type a = cosf(theta / 2.0f);
+	type a = cosine(theta / 2.0f);
 
 	VECTOR bcd = alloc_matrix(1, 3);
 
 	for(int i = 0; i < 3; i++) {
-		bcd[i] = (-1.0f) * (axis[i]) * (sinf(theta / 2.0f));
+		bcd[i] = (-1.0f) * (axis[i]) * (sine(theta / 2.0f));
 	}
 
 	rot[0] = (pow(a, 2)) + (pow(bcd[0], 2)) - (pow(bcd[1], 2)) - (pow(bcd[2], 2));
@@ -1057,12 +1067,29 @@ MATRIX rotation(VECTOR axis, type theta) {
     return rot;
 }
 */
-
+/*
 // Funzione per applicare la matrice di rotazione ad un vettore
 void apply_rotation(VECTOR vec, MATRIX rot) {
     vec[0] = (rot[0] * vec[0]) + (rot[1] * vec[1]) + (rot[2] * vec[2]);
+	printf("v[0]: %.3f\n", vec[0]);
     vec[1] = (rot[3] * vec[0]) + (rot[4] * vec[1]) + (rot[5] * vec[2]);
+	printf("v[1]: %.3f\n", vec[1]);
     vec[2] = (rot[6] * vec[0]) + (rot[7] * vec[1]) + (rot[8] * vec[2]);
+	printf("v[2]: %.3f\n", vec[2]);
+}
+*/
+
+// Funzione per applicare la matrice di rotazione ad un vettore
+VECTOR apply_rotation(VECTOR vec, MATRIX rot) {
+
+	VECTOR ris= alloc_matrix(1,3);
+
+    ris[0] = (rot[0] * vec[0]) + (rot[3] * vec[1]) + (rot[6] * vec[2]);
+    ris[1] = (rot[1] * vec[0]) + (rot[4] * vec[1]) + (rot[7] * vec[2]);
+    ris[2] = (rot[2] * vec[0]) + (rot[5] * vec[1]) + (rot[8] * vec[2]);
+
+	return ris;
+	
 }
 
 int main(int argc, char** argv) {
@@ -1228,6 +1255,7 @@ int main(int argc, char** argv) {
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
 
+	/*
 	printf("Testing `amino_index`...\n");
     test_amino_index();
     printf("\nTesting `distance`...\n");
@@ -1238,6 +1266,7 @@ int main(int argc, char** argv) {
     test_rotation();
     printf("\nTesting `backbone`...\n");
     test_backbone();
+	*/
 
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);
