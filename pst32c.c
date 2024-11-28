@@ -460,7 +460,7 @@ void pst(params* input){
 
 		type delta_energy = energy(input->seq, phi, psi, input->N) - E;
 
-		//printf(" delta_energy %.3f  \n",  delta_energy);
+		printf(" delta_energy %.3f  \n",  delta_energy);
 
 		if (delta_energy <= 0) {
 			E = energy(input->seq, phi, psi, input->N);
@@ -468,7 +468,10 @@ void pst(params* input){
 		} else {
 			//printf(" delta_energy %.3f , t: %.3f \n",  delta_energy, T);
 			type P = (exp((-delta_energy) / (input->k * T)));		// Attenzione alla funzione divisione
+
+			printf("P: %.3f\n", P);
 			type r = random();								// Da controllare se è tra 0 e 1
+			printf("r: %.3f\n", r);
 
 			//printf(" p %.3f, r: %.3f  \n", P, r);
 			
@@ -507,13 +510,13 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	//MATRIX *coords = backbone(input);
 
 	type rama_e = rama_energy(phi, psi, N);
-	printf("Rama_e: %.3f\n", rama_e);
+	//printf("Rama_e: %.3f\n", rama_e);
 	type hydro_e = hydrophobic_energy(seq, coords, N, hydrophobicity);
-	printf("Hydro %.3f\n", hydro_e);
+	//printf("Hydro %.3f\n", hydro_e);
 	type elec_e = electrostatic_energy(seq, coords, N, charge);
-	printf("Elec: %.3f\n", hydro_e);
+	//printf("Elec: %.3f\n", elec_e);
 	type pack_e = packing_energy(seq, coords, N, volume);
-	printf("Pack_e: %.3f\n", pack_e);
+	//printf("Pack_e: %.3f\n", pack_e);
 
 	type w_rama = 1.0f;
 	type w_hydro = 0.5f;
@@ -524,7 +527,7 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 	dealloc_matrix(coords);
 
-	printf("TOT_E: %.3f\n", tot_e);
+	//printf("TOT_E: %.3f\n", tot_e);
 	return tot_e;
 }
 
@@ -592,28 +595,29 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
         for (int k = 0; k < 3; k++) {
 
 			
-            v[k] = coords[(i * 3) + 1 * 3 + k];
+            v[k] = coords[(i * 9) + 3 + k];
 			//v[k] = coords[i * 3 + k];//da vedere quale dei due è corretto
-			//printf("V: %.3f, coord[%f]+ %d\n", v[k], coords[(i +1 )*3 + k], i);
+			//printf("V: %.3f, coord[%f]+ %d\n", v[k], coords[(i * 9) + 3 + k], i);
         }
 		
-        for (int j = 0; j < N; j++) {
+        for (int j = 0; j < 3; j++) {
             if (i != j) {
                 
                 for (int k = 0; k < 3; k++) {
-                    w[k] = coords[(j * 3) + 1 * 3 + k];
+                    w[k] = coords[(j * 9) + 3 + k];
 					//w[k]=coords[j*3 +k];
+					//printf("W: %.3f, coord[%f]+ %d\n", w[k], coords[(j * 9) + 3 + k], j);
                 }
 				
                 type dist = distance(v, w); // Calcola la distanza tra `v` e `w`
-				if ((dist > 1e-6) && (dist < 10.0f)) {
-                //if ((dist < 10.0f)) {
+				//if ((dist > 1e-6) && (dist < 10.0f)) {
+                if ((dist < 10.0f)) {
                     int aminoacido = amino_index(seq[j]);
                     if (aminoacido >= 0) {
                         density += (volume[aminoacido] / (dist * dist * dist));
                         // Debug: stampa informazioni utili
-                        //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f\n",
-                        //       seq[j], aminoacido, volume[aminoacido], density);
+                        //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
+                        //       seq[j], aminoacido, volume[aminoacido], density, dist);
                     }
                 }
             }
@@ -642,13 +646,13 @@ type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
 		type density = 0;
 
 		for (int k = 0; k < 3; k++) {
-            v[k] = coords[(i +1 )*3 + k];
+            v[k] = coords[(i * 9) + 3 + k];
         }
 		
 		for(int j = i + 1; j < N; j++) {
 
 			for (int k = 0; k < 3; k++) {
-                    w[k] = coords[(j +1 )*3 + k];
+                    w[k] = coords[(j * 9) + 3 + k];
                 }
 			// Abbiamo tolto l'if che controlla i != j
 			type dist = distance(v, w);
@@ -681,14 +685,14 @@ type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
 
 		// Primo atomo C_alpha
 		for (int k = 0; k < 3; k++) {
-            v[k] = coords[(i +1 )*3 + k];
+            v[k] = coords[(i * 9) + 3 + k];
         }			
 
 		for(int j = i + 1; j < N; j++) {
 
 			// Secondo atomo C_alpha
 			for (int k = 0; k < 3; k++) {
-                    w[k] = coords[(j +1 )*3 + k];
+                    w[k] = coords[(j * 9) + 3 + k];
             }		
 
 			//type dist = sqrt(pow((coords[i] - coords[j]), 2));
@@ -703,8 +707,8 @@ type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
 		}
 	}
 
-	free(v); // Libera la memoria allocata per `v`
-    free(w); // Libera la memoria allocata per `w`
+	dealloc_matrix(v); // Libera la memoria allocata per `v`
+    dealloc_matrix(w); // Libera la memoria allocata per `w`
 
 	return E;
 }
