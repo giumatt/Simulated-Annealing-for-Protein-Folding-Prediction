@@ -25,6 +25,24 @@ int main(int argc, char** argv) {
 
     int count = 0; // Contatore per i valori letti
 
+    // Leggi il primo valore come int
+    int firstInt;
+    if (fread(&firstInt, sizeof(int), 1, fp) != 1) {
+        printf("Error reading the first int value.\n");
+        fclose(fp);
+        return 1;
+    }
+    printf("First int value: %d\n", firstInt);
+
+    int secondInt;
+    if (fread(&secondInt, sizeof(int), 1, fp) != 1) {
+        printf("Error reading the second int value.\n");
+        fclose(fp);
+        return 1;
+    }
+
+    printf("Second int value: %d\n", secondInt);
+
     // Determina il tipo di dati da leggere
     if (strcmp(argv[1], "-32") == 0) {
         x86 value;
@@ -33,7 +51,7 @@ int main(int argc, char** argv) {
             printf("%12.6f ", value); // Stampa con 6 cifre decimali
             count++;
             if (count % 10 == 0) {
-                printf("\n"); // Aggiunge un ritorno a capo ogni 5 valori
+                printf("\n"); // Aggiunge un ritorno a capo ogni 10 valori
             }
         }
     } else if (strcmp(argv[1], "-64") == 0) {
@@ -43,7 +61,7 @@ int main(int argc, char** argv) {
             printf("%15.8lf ", value); // Stampa con 8 cifre decimali
             count++;
             if (count % 10 == 0) {
-                printf("\n"); // Aggiunge un ritorno a capo ogni 5 valori
+                printf("\n"); // Aggiunge un ritorno a capo ogni 10 valori
             }
         }
     } else {

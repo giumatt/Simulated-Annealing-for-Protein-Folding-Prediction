@@ -65,7 +65,7 @@ type cosine(type);
 type sine(type);
 MATRIX rotation(VECTOR, type);
 VECTOR apply_rotation(VECTOR, MATRIX);
-MATRIX backbone(char*, VECTOR, VECTOR, int);
+void backbone(char*, MATRIX, VECTOR, VECTOR, int);
 
 int amino_index(char);
 
@@ -436,75 +436,75 @@ void pst(params* input){
 	type to = (type)input->to;
 	type T = to;
 
-
 	type E = energy(input->seq, phi, psi, input->N);
+	printf(" E %.3f  \n",  E);
 
 	int t = 0;
 
-
 	while(T > 0) {
-		//int i = rand() % (input->N + 1);						// Da controllare se è tra 0 e 1
-		int i = rand() % (input->N);	
+		//int i = rand() % (input->N + 1);
+		int i = rand() % (input->N); 
+		
 
 		type delta_phi = (random()*2 * M_PI) - M_PI;
 		type delta_psi = (random()*2 * M_PI) - M_PI;
 		//printf(" delta_phi: %.3f , delta_psi: %.3f \n", delta_phi, delta_psi);
 		
-
-		
-		
 		phi[i] = phi[i] + delta_phi;
 		psi[i] = psi[i] + delta_psi;
 
-		
+		printf(" phi %.3f  , delta_phi %.3f, i: %d \n",  phi[i], delta_phi, i);
+		printf(" psi %.3f  , delta_psi %.3f, i: %d \n",  psi[i], delta_psi, i);
 
-		type delta_energy = energy(input->seq, phi, psi, input->N) - E;
+		type new_E = energy(input->seq, phi, psi, input->N);
+		printf(" new_E %.3f  \n",  new_E);
+		// type delta_energy = energy(input->seq, phi, psi, input->N) - E;
 
+
+		type delta_energy = new_E - E;
 		printf(" delta_energy %.3f  \n",  delta_energy);
 
 		if (delta_energy <= 0) {
-			E = energy(input->seq, phi, psi, input->N);
-			
+			// E = energy(input->seq, phi, psi, input->N);
+			E = new_E;
 		} else {
-			//printf(" delta_energy %.3f , t: %.3f \n",  delta_energy, T);
-			type P = (exp((-delta_energy) / (input->k * T)));		// Attenzione alla funzione divisione
-
-			printf("P: %.3f\n", P);
-			type r = random();								// Da controllare se è tra 0 e 1
-			printf("r: %.3f\n", r);
-
-			//printf(" p %.3f, r: %.3f  \n", P, r);
-			
-
+			printf(" delta_energy %.3f , t: %.3f \n",  delta_energy, T);
+			type P = (exp((-delta_energy) / (input->k * T)));  // Attenzione alla funzione divisione
+			type r = random();        // Da controllare se è tra 0 e 1
+			printf(" p %.3f, r: %.3f  \n", P, r);
 			if (r <= P) {
-				E = energy(input->seq, phi, psi, input->N);
+				// E = energy(input->seq, phi, psi, input->N);
+				E = new_E;
+				printf(" new_E  accettato con prob %.3f  \n",  new_E);
 			}else {
 				phi[i] = phi[i] - delta_phi;
 				psi[i] = psi[i] - delta_psi;
+
+				printf(" phi reset %.3f  , delta_phi %.3f, i: %d \n",  phi[i], delta_phi, i);
+				printf(" psi reset %.3f  , delta_psi %.3f, i: %d \n",  psi[i], delta_psi, i);
 			}
 		}
 
 		t += 1;
 		T = to - sqrtf(input->alpha * t);
-	}
+		}
 
 	input->e=E;
-	
+		
 	for(int i=0; i<5; i++){
 		printf(" phi: %.3f , psi: %.3f \n", phi[i], psi[i]);
 	}
 
-	
-	
 	input->phi = phi;
-	input->psi=psi;
+	input->psi = psi;
 }
+
 
 type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	
 	MATRIX coords = alloc_matrix(3 * N, 3);
 
-	coords = backbone(seq, phi, psi, N);
+	backbone(seq, coords, phi, psi, N);
 			
 
 	//MATRIX *coords = backbone(input);
@@ -612,9 +612,10 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
                 type dist = distance(v, w); // Calcola la distanza tra `v` e `w`
 				//if ((dist > 1e-6) && (dist < 10.0f)) {
                 if ((dist < 10.0f)) {
-                    int aminoacido = amino_index(seq[j]);
-                    if (aminoacido >= 0) {
-                        density += (volume[aminoacido] / (dist * dist * dist));
+                    int aminoacido_j = amino_index(seq[j]);
+					int aminoacido_i = amino_index(seq[i]);
+                    if ((aminoacido_i >= 0) && (aminoacido_j >= 0)) {
+                        density += ((volume[aminoacido_i]*volume[aminoacido_j]) / (dist * dist * dist));
                         // Debug: stampa informazioni utili
                         //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
                         //       seq[j], aminoacido, volume[aminoacido], density, dist);
@@ -752,7 +753,7 @@ int amino_index(char amino) {
 
 
 // MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
-MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
+void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 	type r_ca_n = 1.46f;
 	type r_ca_c = 1.52f;
 	type r_c_n = 1.33f;
@@ -763,8 +764,6 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 	// Da rivedere dimensione
 	// MATRIX coords[3 * input->N * 3];
-	MATRIX coords = alloc_matrix(3 * N, 3);
-
 	// Da rivedere l'assegnamento
 	coords[0] = 0;
 	coords[1] = 0;
@@ -798,7 +797,8 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 		if (i > 0) {
 			// Parte di aggiornamento per l'atomo N
 			for (int j = 0; j < 3; j++) {
-				v1[j] = coords[((idx - 1) * 3) + j] - coords[((idx - 2) * 3) + j];
+				//v1[j] = coords[((idx - 1) * 3) + j] - coords[((idx - 2) * 3) + j];
+				v1[j] = coords[((idx - 2) * 3) + j] - coords[((idx - 1) * 3) + j];
 				//printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
 				// printf("idx: %d\n", idx);
 			}
@@ -878,8 +878,6 @@ MATRIX backbone(char* seq, VECTOR phi, VECTOR psi, int N) {
 	dealloc_matrix(v3);
 	dealloc_matrix(rot);
 	dealloc_matrix(newv);
-
-	return coords;
 }
 
 /*
