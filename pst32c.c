@@ -440,7 +440,7 @@ void pst(params* input){
 	type T = to;
 
 	type E = energy(input->seq, phi, psi, coords, input->N);
-	//printf("Energia iniziale: %.3f\n", E);
+	printf("Energia iniziale: %.3f\n", E);
 
 	int t = 0;
   int cnt = 1;
@@ -460,8 +460,8 @@ void pst(params* input){
 
     //printf("\n");
     if(T<20) printf("Inizio %d iterazione da qui:\n", cnt);
-    //printf("phi_i[%d]: %.3f, psi_i[%d]: %.3f\n", i, phi[i], i, psi[i]);
-		//printf("delta_phi: %.3f , delta_psi: %.3f, T: %.3f\n", delta_phi, delta_psi, T);
+    printf("phi_i[%d]: %.3f, psi_i[%d]: %.3f\n", i, phi[i], i, psi[i]);
+	printf("delta_phi: %.3f , delta_psi: %.3f, T: %.3f\n", delta_phi, delta_psi, T);
 		
 
 		phi[i] = phi[i] + delta_phi;
@@ -603,8 +603,8 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
     VECTOR v = alloc_matrix(1, 3); // Alloca un vettore 3D per il punto v
     VECTOR w = alloc_matrix(1, 3); // Alloca un vettore 3D per il punto w
 
-    for(int i = 0; i < 30; i++)
-      printf("coords[%d]: %.3f\n", i, coords[i]);
+    //for(int i = 0; i < 30; i++)
+      //printf("coords[%d]: %.3f\n", i, coords[i]);
 
     for (int i = 0; i < N; i++) {
         type density = 0;
@@ -613,20 +613,20 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
         for (int k = 0; k < 3; k++) {			
             v[k] = coords[(i * 9) + 3 + k];
 			      //v[k] = coords[i * 3 + k];//da vedere quale dei due è corretto
-			      printf("V: %.3f, coords[%d]: %.3f\n", v[k], i, coords[(i * 9) + 3 + k]);
+			      //printf("V: %.3f, coords[%d]: %.3f\n", v[k], i, coords[(i * 9) + 3 + k]);
         }
 		
-        for (int j = 0; j < 3; j++) {
+        for (int j = 0; j < N; j++) {
             if (i != j) {
                 
                 for (int k = 0; k < 3; k++) {
                     w[k] = coords[(j * 9) + 3 + k];
 					          //w[k]=coords[j*3 +k];
-					          printf("W: %.3f, coords[%d]: %.3f\n", w[k], j, coords[(j * 9) + 3 + k]);
+					          //printf("W: %.3f, coords[%d]: %.3f\n", w[k], j, coords[(j * 9) + 3 + k]);
                 }
 				
                 type dist = distance(v, w); // Calcola la distanza tra `v` e `w`
-                printf("Distance: %.3f, i: %d\n", dist, i);
+                //printf("Distance: %.3f, i: %d\n", dist, i);
 				        //if ((dist > 1e-6) && (dist < 10.0f)) {
                 if ((dist < 10.0f)) {
                     int aminoacido_j = amino_index(seq[j]);
@@ -634,8 +634,8 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
                     if (aminoacido_j >= 0) {
                         density += ((volume[aminoacido_j]) / (dist * dist * dist));
                         // Debug: stampa informazioni utili
-                        printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
-                               seq[j], aminoacido_j, volume[aminoacido_j], density, dist);
+                        //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
+                        //       seq[j], aminoacido_j, volume[aminoacido_j], density, dist);
                     }
                 }
             }
