@@ -759,7 +759,7 @@ int amino_index(char amino) {
     const int num_amino_acids = 26; // Numero di amminoacidi standard
 
     for (int i = 0; i < num_amino_acids; i++) {
-        if (amino_acids[i] == amino  && volume[i] !=-1) {
+        if (amino_acids[i] == amino) {
             return i; // Ritorna l'indice corrispondente
         }
     }
