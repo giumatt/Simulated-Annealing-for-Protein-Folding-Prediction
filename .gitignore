@@ -4,3 +4,5 @@ C_calling_conventions.pdf
 out32_256_3_*.ds2
 *.o
 pst32c
+compare.txt
+read_binary*
