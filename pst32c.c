@@ -479,7 +479,7 @@ void pst(params* input){
     	// cnt++;
 	}
 
-	input->e=E;
+	input->e = E;
 	input->phi = phi;
 	input->psi = psi;
 
@@ -495,17 +495,15 @@ type energy(char* seq, VECTOR phi, VECTOR psi, MATRIX coords, int N) {
 	type w_elec = 0.2f;
 	type w_pack = 0.3f;
 
-	type rama_e, hydro_e, elec_e, pack_e;
-
 	backbone(seq, coords, phi, psi, N);
 
-	rama_e = rama_energy(phi, psi, N);
+	type rama_e = rama_energy(phi, psi, N);
 	//printf("Rama_e: %.3f\n", rama_e);
-	hydro_e = hydrophobic_energy(seq, coords, N, hydrophobicity);
+	type hydro_e = hydrophobic_energy(seq, coords, N, hydrophobicity);
 	//printf("Hydro %.3f\n", hydro_e);
-	elec_e = electrostatic_energy(seq, coords, N, charge);
+	type elec_e = electrostatic_energy(seq, coords, N, charge);
 	//printf("Elec: %.3f\n", elec_e);
-	pack_e = packing_energy(seq, coords, N, volume);
+	type pack_e = packing_energy(seq, coords, N, volume);
 	//printf("Pack_e: %.3f\n", pack_e);
 
 	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
