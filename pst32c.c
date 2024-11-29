@@ -428,7 +428,7 @@ void pst(params* input){
 
 	VECTOR phi = input->phi;
 	VECTOR psi = input->psi;
-  MATRIX coords = alloc_matrix(3 * input->N, 3);
+  	MATRIX coords = alloc_matrix(3 * input->N, 3);
 
   /*
 	for(int i=0; i<5; i++){
@@ -443,13 +443,13 @@ void pst(params* input){
 	printf("Energia iniziale: %.3f\n", E);
 
 	int t = 0;
-  int cnt = 1;
+  	int cnt = 1;
 
-  type new_E;
-  type delta_energy;
-  type P, r;
+	type new_E;
+	type delta_energy;
+	type P, r;
 
-  // delta_energy = new_E - E;
+  	// delta_energy = new_E - E;
 	while(T > 0) {
     
 		//int i = rand() % (input->N + 1);
