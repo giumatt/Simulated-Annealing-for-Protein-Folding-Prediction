@@ -55,7 +55,7 @@
 
 // Definizione delle nostre funzioni
 type distance(VECTOR, VECTOR);
-type energy(char*, VECTOR, VECTOR, int);
+type energy(char*, VECTOR, VECTOR, MATRIX, int);
 type packing_energy(char*, MATRIX, int, type*);
 type electrostatic_energy(char*, MATRIX, int, type*);
 type hydrophobic_energy(char*, MATRIX, int, type*);
@@ -428,84 +428,99 @@ void pst(params* input){
 
 	VECTOR phi = input->phi;
 	VECTOR psi = input->psi;
+  MATRIX coords = alloc_matrix(3 * input->N, 3);
 
+  /*
 	for(int i=0; i<5; i++){
-		printf(" phi_i: %.3f , psi_i: %.3f \n", input->phi[i], input->psi[i]);
+		printf("phi iniziale: %.3f , psi iniziale: %.3f \n", phi[i], psi[i]);
 	}
+  */
 
 	type to = (type)input->to;
 	type T = to;
 
-	type E = energy(input->seq, phi, psi, input->N);
-	printf(" E %.3f  \n",  E);
+	type E = energy(input->seq, phi, psi, coords, input->N);
+	//printf("Energia iniziale: %.3f\n", E);
 
 	int t = 0;
+  int cnt = 1;
 
+  type new_E;
+  type delta_energy;
+  type P, r;
+
+  // delta_energy = new_E - E;
 	while(T > 0) {
+    
 		//int i = rand() % (input->N + 1);
-		int i = rand() % (input->N); 
-		
+		int i = rand() % (input->N);
 
 		type delta_phi = (random()*2 * M_PI) - M_PI;
 		type delta_psi = (random()*2 * M_PI) - M_PI;
-		//printf(" delta_phi: %.3f , delta_psi: %.3f \n", delta_phi, delta_psi);
+
+    //printf("\n");
+    if(T<20) printf("Inizio %d iterazione da qui:\n", cnt);
+    //printf("phi_i[%d]: %.3f, psi_i[%d]: %.3f\n", i, phi[i], i, psi[i]);
+		//printf("delta_phi: %.3f , delta_psi: %.3f, T: %.3f\n", delta_phi, delta_psi, T);
 		
+
 		phi[i] = phi[i] + delta_phi;
 		psi[i] = psi[i] + delta_psi;
 
-		printf(" phi %.3f  , delta_phi %.3f, i: %d \n",  phi[i], delta_phi, i);
-		printf(" psi %.3f  , delta_psi %.3f, i: %d \n",  psi[i], delta_psi, i);
+		//printf("phi[%d] %.3f, delta_phi %.3f, T: %.3f\n", i, phi[i], delta_phi, T);
+		//printf("psi[%d] %.3f, delta_psi %.3f, T: %.3f\n", i, psi[i], delta_psi, T);
 
-		type new_E = energy(input->seq, phi, psi, input->N);
-		printf(" new_E %.3f  \n",  new_E);
+		new_E = energy(input->seq, phi, psi, coords, input->N);
+		//printf("new_E: %.3f, T: %.3f\n", new_E, T);
 		// type delta_energy = energy(input->seq, phi, psi, input->N) - E;
 
-
-		type delta_energy = new_E - E;
-		printf(" delta_energy %.3f  \n",  delta_energy);
+		delta_energy = new_E - E;
+		//printf("delta_energy %.3f, T: %.3f\n",  delta_energy, T);
 
 		if (delta_energy <= 0) {
 			// E = energy(input->seq, phi, psi, input->N);
 			E = new_E;
+      //printf("Configurazione accettata per decremento energia!\n");
 		} else {
-			printf(" delta_energy %.3f , t: %.3f \n",  delta_energy, T);
-			type P = (exp((-delta_energy) / (input->k * T)));  // Attenzione alla funzione divisione
-			type r = random();        // Da controllare se è tra 0 e 1
-			printf(" p %.3f, r: %.3f  \n", P, r);
+			//printf("delta_energy_else: %.3f, T: %.3f\n",  delta_energy, T);
+			P = (exp((-delta_energy) / (input->k * T)));  // Attenzione alla funzione divisione
+			r = random();        // Da controllare se è tra 0 e 1
+			//printf("p %.3f, r: %.3f  \n", P, r);
 			if (r <= P) {
 				// E = energy(input->seq, phi, psi, input->N);
 				E = new_E;
-				printf(" new_E  accettato con prob %.3f  \n",  new_E);
+				//printf("Configurazione accettata con prob: %.3f, E: %.3f, T: %.3f\n", r, E, T);
 			}else {
+        //printf("Configurazione rifiutata! Reset dei vettori:\n");
 				phi[i] = phi[i] - delta_phi;
 				psi[i] = psi[i] - delta_psi;
 
-				printf(" phi reset %.3f  , delta_phi %.3f, i: %d \n",  phi[i], delta_phi, i);
-				printf(" psi reset %.3f  , delta_psi %.3f, i: %d \n",  psi[i], delta_psi, i);
+				//printf("phi reset: %.3f  , delta_phi: %.3f, i: %d \n",  phi[i], delta_phi, i);
+				//printf("psi reset: %.3f  , delta_psi: %.3f, i: %d \n",  psi[i], delta_psi, i);
 			}
 		}
 
 		t += 1;
 		T = to - sqrtf(input->alpha * t);
+    cnt++;
 		}
-
+  dealloc_matrix(coords);
 	input->e=E;
-		
+	/*	
 	for(int i=0; i<5; i++){
 		printf(" phi: %.3f , psi: %.3f \n", phi[i], psi[i]);
 	}
-
+*/
 	input->phi = phi;
 	input->psi = psi;
 }
 
 
-type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
+type energy(char* seq, VECTOR phi, VECTOR psi, MATRIX coords, int N) {
 	
-	MATRIX coords = alloc_matrix(3 * N, 3);
+	//MATRIX coords = alloc_matrix(3 * N, 3);
 
 	backbone(seq, coords, phi, psi, N);
-			
 
 	//MATRIX *coords = backbone(input);
 
@@ -525,9 +540,9 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
 
-	dealloc_matrix(coords);
+	//dealloc_matrix(coords);
 
-	//printf("TOT_E: %.3f\n", tot_e);
+	printf("TOT_E: %.3f\n", tot_e);
 	return tot_e;
 }
 
@@ -588,16 +603,17 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
     VECTOR v = alloc_matrix(1, 3); // Alloca un vettore 3D per il punto v
     VECTOR w = alloc_matrix(1, 3); // Alloca un vettore 3D per il punto w
 
+    for(int i = 0; i < 30; i++)
+      printf("coords[%d]: %.3f\n", i, coords[i]);
+
     for (int i = 0; i < N; i++) {
         type density = 0;
 
         // carico le coordinate c_alpha da i a i+3
-        for (int k = 0; k < 3; k++) {
-
-			
+        for (int k = 0; k < 3; k++) {			
             v[k] = coords[(i * 9) + 3 + k];
-			//v[k] = coords[i * 3 + k];//da vedere quale dei due è corretto
-			//printf("V: %.3f, coord[%f]+ %d\n", v[k], coords[(i * 9) + 3 + k], i);
+			      //v[k] = coords[i * 3 + k];//da vedere quale dei due è corretto
+			      printf("V: %.3f, coords[%d]: %.3f\n", v[k], i, coords[(i * 9) + 3 + k]);
         }
 		
         for (int j = 0; j < 3; j++) {
@@ -605,20 +621,21 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
                 
                 for (int k = 0; k < 3; k++) {
                     w[k] = coords[(j * 9) + 3 + k];
-					//w[k]=coords[j*3 +k];
-					//printf("W: %.3f, coord[%f]+ %d\n", w[k], coords[(j * 9) + 3 + k], j);
+					          //w[k]=coords[j*3 +k];
+					          printf("W: %.3f, coords[%d]: %.3f\n", w[k], j, coords[(j * 9) + 3 + k]);
                 }
 				
                 type dist = distance(v, w); // Calcola la distanza tra `v` e `w`
-				//if ((dist > 1e-6) && (dist < 10.0f)) {
+                printf("Distance: %.3f, i: %d\n", dist, i);
+				        //if ((dist > 1e-6) && (dist < 10.0f)) {
                 if ((dist < 10.0f)) {
                     int aminoacido_j = amino_index(seq[j]);
-					int aminoacido_i = amino_index(seq[i]);
-                    if ((aminoacido_i >= 0) && (aminoacido_j >= 0)) {
-                        density += ((volume[aminoacido_i]*volume[aminoacido_j]) / (dist * dist * dist));
+					          //int aminoacido_i = amino_index(seq[i]);
+                    if (aminoacido_j >= 0) {
+                        density += ((volume[aminoacido_j]) / (dist * dist * dist));
                         // Debug: stampa informazioni utili
-                        //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
-                        //       seq[j], aminoacido, volume[aminoacido], density, dist);
+                        printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
+                               seq[j], aminoacido_j, volume[aminoacido_j], density, dist);
                     }
                 }
             }
@@ -754,6 +771,8 @@ int amino_index(char amino) {
 
 // MATRIX backbone(char* s, VECTOR phi, VECTOR psi, int N) {
 void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
+  // MATRIX coords = alloc_matrix(3 * N, 3);
+
 	type r_ca_n = 1.46f;
 	type r_ca_c = 1.52f;
 	type r_c_n = 1.33f;
@@ -791,7 +810,7 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 
 	///!!! prima newv veniva definito qui
 
-	for(int i = 0; i <N; i++) {
+	for(int i = 0; i < N; i++) {
 		int idx = i * 3;
 
 		if (i > 0) {
@@ -958,7 +977,7 @@ type distance(VECTOR v, VECTOR w) {
     type dist = 0.0;
     for (int i = 0; i < 3; i++) {
         type diff = v[i] - w[i];
-		dist += diff * diff;
+		    dist += diff * diff;
     }
 	return (type)sqrtf(dist);
 }
@@ -971,7 +990,7 @@ void normalize(VECTOR v, int n) {
     for (int i = 0; i < n; i++) {
         norm += v[i] * v[i];
     }
-    norm = sqrtf(norm);
+    norm = (type)sqrtf(norm);
 
 	if (norm != 0) {
     	for (int i = 0; i < n; i++) {
