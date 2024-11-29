@@ -412,18 +412,6 @@ void test_backbone() {
 */
 
 void pst(params* input){
-	/*
-	char* seq = input->seq;
-	int N = input->N;
-	int to = input->to;
-	int T = to;
-	int k = input->k;
-	type E = input->e;
-	int alpha = input->alpha;
-	VECTOR phi = input->phi;
-	VECTOR psi = input->psi;
-	*/
-
 	VECTOR phi = input->phi;
 	VECTOR psi = input->psi;
   	MATRIX coords = alloc_matrix(3 * input->N, 3);
@@ -527,7 +515,7 @@ type energy(char* seq, VECTOR phi, VECTOR psi, MATRIX coords, int N) {
 }
 
 type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
-    type E = 0;
+    type E = 0.0f;
     VECTOR v = alloc_matrix(1, 3); 				// Alloca un vettore 3D per il punto v
     VECTOR w = alloc_matrix(1, 3); 				// Alloca un vettore 3D per il punto w
 
@@ -576,7 +564,7 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
 }
 
 type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
-	type E = 0;
+	type E = 0.0f;
 	VECTOR v = alloc_matrix(1, 3);
     VECTOR w = alloc_matrix(1, 3);
 
@@ -614,7 +602,7 @@ type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
 }
 
 type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
-	type E = 0;
+	type E = 0.0f;
 
 	VECTOR v = alloc_matrix(1, 3);
     VECTOR w = alloc_matrix(1, 3);
@@ -650,27 +638,28 @@ type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
 }
 
 type rama_energy(VECTOR phi, VECTOR psi, int N) {
-	type alpha_psi = -47.0f;
-	type alpha_phi = -57.8f;
-	type beta_psi = 113.0f;
-	type beta_phi = -119.0f;
+    type alpha_psi = -47.0f;
+    type alpha_phi = -57.8f;
+    type beta_psi = 113.0f;
+    type beta_phi = -119.0f;
 
-	type E = 0;
+    type E = 0.0f;
 
-	for(int i = 0; i < N; i++) {
-		//! Sistemare per evitare l'uso di pow
-		
-		type alpha_dist = sqrtf((pow((phi[i] - alpha_phi), 2) + (pow((psi[i] - alpha_psi), 2))));
-		type beta_dist = sqrtf((pow((phi[i] - beta_phi), 2) + (pow((psi[i] - beta_psi), 2))));
+    for(int i = 0; i < N; i++) {
+        type alpha_dist = sqrtf(( (phi[i] - alpha_phi) * (phi[i] - alpha_phi) ) + 
+                                ( (psi[i] - alpha_psi) * (psi[i] - alpha_psi) ));
+        
+        type beta_dist = sqrtf(( (phi[i] - beta_phi) * (phi[i] - beta_phi) ) + 
+                                ( (psi[i] - beta_psi) * (psi[i] - beta_psi) ));
 
-		type min = alpha_dist;
-		if (alpha_dist > beta_dist)
-			min = beta_dist;
+        type min = alpha_dist;
+        if (alpha_dist > beta_dist)
+            min = beta_dist;
 
-		E += (0.5f * min);
-	}
+        E += (0.5f * min);
+    }
 
-	return E;
+    return E;
 }
 
 int amino_index(char amino) {
@@ -694,13 +683,13 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 	type theta_c_n_ca = 2.124f;
 	type theta_n_ca_c = 1.940f;
 
-	coords[0] = 0;
-	coords[1] = 0;
-	coords[2] = 0;
+	coords[0] = 0.0f;
+	coords[1] = 0.0f;
+	coords[2] = 0.0f;
 
 	coords[3] = r_ca_n;
-	coords[4] = 0;
-	coords[5] = 0;
+	coords[4] = 0.0f;
+	coords[5] = 0.0f;
 
 	// Vettori di direzione
 	VECTOR v1 = alloc_matrix(1, 3);
@@ -728,9 +717,9 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 
 			//! Prima newv era esterno al for quindi apply_rotation nnon veniva fatto correttamente
 
-			newv[0] = 0;
+			newv[0] = 0.0f;
 			newv[1] = r_c_n;
-			newv[2] = 0;
+			newv[2] = 0.0f;
 
 			newv = apply_rotation(newv, rot);
 			
@@ -745,9 +734,9 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 			
 			rot = rotation(v2, phi[i]);
 	
-			newv[0] = 0;
+			newv[0] = 0.0f;
 			newv[1] = r_ca_n;		// !
-			newv[2] = 0;
+			newv[2] = 0.0f;
 			newv = apply_rotation(newv, rot);
 			
 			for(int k = 0; k < 3; k++) {
@@ -766,9 +755,9 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 		
 		rot = rotation(v3, psi[i]);
 
-		newv[0] = 0;
+		newv[0] = 0.0f;
 		newv[1] = r_ca_c;
-		newv[2] = 0;
+		newv[2] = 0.0f;
 
 		newv = apply_rotation(newv, rot);
 
