@@ -425,10 +425,6 @@ void pst(params* input){
 	int t = 0;
   	//int cnt = 1;
 
-	type new_E;
-	type delta_energy;
-	type P, r;
-
 	while(T > 0.0f) {
 
 		int i = rand() % (input->N);
@@ -447,11 +443,11 @@ void pst(params* input){
 		//printf("phi[%d] %.3f, delta_phi %.3f, T: %.3f\n", i, phi[i], delta_phi, T);
 		//printf("psi[%d] %.3f, delta_psi %.3f, T: %.3f\n", i, psi[i], delta_psi, T);
 
-		new_E = energy(input->seq, phi, psi, coords, input->N);
+		type new_E = energy(input->seq, phi, psi, coords, input->N);
 		//printf("new_E: %.3f, T: %.3f\n", new_E, T);
 		// type delta_energy = energy(input->seq, phi, psi, input->N) - E;
 
-		delta_energy = new_E - E;
+		type delta_energy = new_E - E;
 		//printf("delta_energy %.3f, T: %.3f\n",  delta_energy, T);
 
 		if (delta_energy <= 0) {
@@ -459,8 +455,8 @@ void pst(params* input){
       		//printf("Configurazione accettata per decremento energia!\n");
 		} else {
 			//printf("delta_energy_else: %.3f, T: %.3f\n",  delta_energy, T);
-			P = (exp((-delta_energy) / (input->k * T)));  	//! Attenzione alla funzione divisione
-			r = random();        							//! Da controllare se è tra 0 e 1
+			type P = (exp((-delta_energy) / (input->k * T)));
+			type r = random();
 			//printf("p %.3f, r: %.3f  \n", P, r);
 			if (r <= P) {
 				E = new_E;
@@ -514,8 +510,8 @@ type energy(char* seq, VECTOR phi, VECTOR psi, MATRIX coords, int N) {
 
 type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
     type E = 0.0f;
-    VECTOR v = alloc_matrix(1, 3); 				// Alloca un vettore 3D per il punto v
-    VECTOR w = alloc_matrix(1, 3); 				// Alloca un vettore 3D per il punto w
+    VECTOR v = alloc_matrix(1, 3);
+    VECTOR w = alloc_matrix(1, 3);
 
     for (int i = 0; i < N; i++) {
         type density = 0;
@@ -539,7 +535,7 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
 				//if ((dist > 1e-6) && (dist < 10.0f)) {
                 if ((dist < 10.0f)) {
                     int amminoacido_j = amino_index(seq[j]);
-                    if (volume[amminoacido_j] > 0) {
+                    if (volume[amminoacido_j] > 0.0f) {
                         density += ((volume[amminoacido_j]) / (dist * dist * dist));
                         //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
                         //       seq[j], aminoacido_j, volume[aminoacido_j], density, dist);
@@ -579,7 +575,7 @@ type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
 			for (int k = 0; k < 3; k++) {
                     w[k] = coords[(j * 9) + 3 + k];
                 }
-			//! Abbiamo tolto l'if che controlla i != j
+
 			type dist = distance(v, w);
 
 			int amminoacido_i = amino_index(seq[i]);
@@ -587,16 +583,17 @@ type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
 			
 			//vedere se inserire le chiamate direttamente nell'if
 			if ((dist < 10.0f) && ((charge[amminoacido_i] != 0.0f) && (charge[amminoacido_j] != 0.0f))
-				&& ((volume[amminoacido_i] != -1) && (volume[amminoacido_j] != -1))) {
+				&& ((volume[amminoacido_i] != -1.0f) && (volume[amminoacido_j] != -1.0f))) {
 				//la carica può essere anche -1, quindi verifico che l'amminoacido esista facendo riferimento a volume
 				E += ((charge[amminoacido_i] * charge[amminoacido_j]) / (dist * 4.0f));
 			}
 		}
 	}
-	return E;
 
 	dealloc_matrix(v);
     dealloc_matrix(w);
+
+	return E;
 }
 
 type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
@@ -624,16 +621,16 @@ type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
 			int amminoacido_j = amino_index(seq[j]);
 
 			if ((dist < 10.0f) &&
-				((hydrophobicity[amminoacido_i] != -1) && (volume[amminoacido_j] != -1))) {
+				((hydrophobicity[amminoacido_i] != -1.0f) && (hydrophobicity[amminoacido_j] != -1.0f))) {
 				E += ((hydrophobicity[amminoacido_i] * hydrophobicity[amminoacido_j]) / (dist));
 			}
 		}
 	}
 
-	return E;
-
 	dealloc_matrix(v);
     dealloc_matrix(w);
+
+	return E;
 }
 
 type rama_energy(VECTOR phi, VECTOR psi, int N) {
@@ -645,11 +642,11 @@ type rama_energy(VECTOR phi, VECTOR psi, int N) {
     type E = 0.0f;
 
     for(int i = 0; i < N; i++) {
-        type alpha_dist = sqrtf(( (phi[i] - alpha_phi) * (phi[i] - alpha_phi) ) + 
-                                ( (psi[i] - alpha_psi) * (psi[i] - alpha_psi) ));
+        type alpha_dist = sqrtf(((phi[i] - alpha_phi) * (phi[i] - alpha_phi)) + 
+                                ((psi[i] - alpha_psi) * (psi[i] - alpha_psi)));
         
-        type beta_dist = sqrtf(( (phi[i] - beta_phi) * (phi[i] - beta_phi) ) + 
-                                ( (psi[i] - beta_psi) * (psi[i] - beta_psi) ));
+        type beta_dist = sqrtf(((phi[i] - beta_phi) * (phi[i] - beta_phi)) + 
+                                ((psi[i] - beta_psi) * (psi[i] - beta_psi)));
 
         type min = alpha_dist;
         if (alpha_dist > beta_dist)
@@ -714,8 +711,6 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 			
 			rot = rotation(v1, theta_c_n_ca);
 
-			//! Prima newv era esterno al for quindi apply_rotation nnon veniva fatto correttamente
-
 			newv[0] = 0.0f;
 			newv[1] = r_c_n;
 			newv[2] = 0.0f;
@@ -734,8 +729,9 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 			rot = rotation(v2, phi[i]);
 	
 			newv[0] = 0.0f;
-			newv[1] = r_ca_n;		// !
+			newv[1] = r_ca_n;
 			newv[2] = 0.0f;
+
 			newv = apply_rotation(newv, rot);
 			
 			for(int k = 0; k < 3; k++) {
