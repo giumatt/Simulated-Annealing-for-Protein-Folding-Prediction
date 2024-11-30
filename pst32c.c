@@ -539,7 +539,7 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
 				//if ((dist > 1e-6) && (dist < 10.0f)) {
                 if ((dist < 10.0f)) {
                     int amminoacido_j = amino_index(seq[j]);
-                    if (amminoacido_j >= 0) {
+                    if (volume[amminoacido_j] > 0) {
                         density += ((volume[amminoacido_j]) / (dist * dist * dist));
                         //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
                         //       seq[j], aminoacido_j, volume[aminoacido_j], density, dist);
@@ -549,7 +549,7 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
         }
         // Calcolo della differenza di densità
         int amminoacido_i = amino_index(seq[i]);
-        if (amminoacido_i >= 0) {
+        if (volume[amminoacido_i] > 0) {
             type diff = volume[amminoacido_i] - density;
             E += diff * diff;
         }
@@ -586,8 +586,8 @@ type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
 			int amminoacido_j = amino_index(seq[j]);
 			
 			//vedere se inserire le chiamate direttamente nell'if
-			if ((dist < 10.0f) && (charge[amminoacido_i] != 0.0f) && (charge[amminoacido_j] != 0.0f)
-				&& (volume[amminoacido_i]!=-1) && (volume[amminoacido_j]!=-1)) {
+			if ((dist < 10.0f) && ((charge[amminoacido_i] != 0.0f) && (charge[amminoacido_j] != 0.0f))
+				&& ((volume[amminoacido_i] != -1) && (volume[amminoacido_j] != -1))) {
 				//la carica può essere anche -1, quindi verifico che l'amminoacido esista facendo riferimento a volume
 				E += ((charge[amminoacido_i] * charge[amminoacido_j]) / (dist * 4.0f));
 			}
@@ -622,8 +622,9 @@ type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
 
 			int amminoacido_i = amino_index(seq[i]);
 			int amminoacido_j = amino_index(seq[j]);
+
 			if ((dist < 10.0f) &&
-				(volume[amminoacido_i]!=-1) && (volume[amminoacido_j]!=-1)) {
+				((hydrophobicity[amminoacido_i] != -1) && (volume[amminoacido_j] != -1))) {
 				E += ((hydrophobicity[amminoacido_i] * hydrophobicity[amminoacido_j]) / (dist));
 			}
 		}
