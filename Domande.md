@@ -7,4 +7,7 @@
 6. L'if comprende anche l'aggiornamento di C? Nella funzione backbone
 7. Come ci entriamo nel while della pst se t0 è sempre maggiore di 0 (e il while è T <= 0)?
 
-###### Noi non abbiamo s come argomento della backbone ma non lo usiamo lì dentro!
+###### $\toparrow$ Risolte $\toparrow$
+
+8. Nella backbone dobbiamo fare C - C_a o C_a - C?
+9. Nella backbone abbiamo gli angoli theta ma non ne usiamo due su tre, come mai?
