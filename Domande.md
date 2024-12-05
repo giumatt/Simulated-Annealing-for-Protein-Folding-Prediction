@@ -9,8 +9,7 @@
 
 ###### $\toparrow$ Risolte $\toparrow$
 
-8. Nella backbone dobbiamo fare C - C_a o C_a - C?
-9. Nella backbone abbiamo gli angoli theta ma non ne usiamo due su tre, come mai?
-10. Aggiungere il controllo sulla sequenza
-11. Controllare la distanza
-12. Controllare la backbone oltre la 9 iterazione
+
+8. Nella backbone abbiamo gli angoli theta ma non ne usiamo due su tre, come mai?
+9. Aggiungere il controllo sulla sequenza
+

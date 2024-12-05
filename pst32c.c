@@ -702,53 +702,82 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 		if (i > 0) {
 			// Parte di aggiornamento per l'atomo N
 			for (int j = 0; j < 3; j++) {
-				//v1[j] = coords[((idx - 1) * 3) + j] - coords[((idx - 2) * 3) + j];
-				v1[j] = coords[((idx - 2) * 3) + j] - coords[((idx - 1) * 3) + j];
-				//printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
+				v1[j] = coords[((idx - 1) * 3) + j] - coords[((idx - 2) * 3) + j];
+				//v1[j] = coords[((idx - 2) * 3) + j] - coords[((idx - 1) * 3) + j];
+				printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
 				// printf("idx: %d\n", idx);
 			}
 			normalize(v1, 3);
+			printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v1[0], v1[1], v1[2]);
 			
 			rot = rotation(v1, theta_c_n_ca);
+
+			printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
 
 			newv[0] = 0.0f;
 			newv[1] = r_c_n;
 			newv[2] = 0.0f;
 
 			newv = apply_rotation(newv, rot);
+
+			printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
 			
 			for(int k = 0; k < 3; k++)
 				coords[(idx * 3) + k] = coords[((idx - 1) * 3) + k] + (newv[k]);
+			printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[9], coords[10], coords[11]);
 			
 			// Parte di aggiornamento per l'atomo C_a
-			for (int j = 0; j < 3; j++)
+			for (int j = 0; j < 3; j++){
 				v2[j] = coords[(idx * 3) + j] - coords[((idx - 1) * 3) + j];
+				printf("For iteration [%d, %d] v2[%d] is: %.3f\n", i, j, j, v2[j]);
+			}
 				
 			normalize(v2, 3);
+
+			printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v2[0], v2[1], v2[2]);
 			
 			rot = rotation(v2, phi[i]);
+
+			printf("phi [%d]: %.3f\n", i, phi[i]);
+
+			printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
+
 	
 			newv[0] = 0.0f;
 			newv[1] = r_ca_n;
 			newv[2] = 0.0f;
 
 			newv = apply_rotation(newv, rot);
+			printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
+			
 			
 			for(int k = 0; k < 3; k++) {
 				coords[((idx + 1) * 3) + k] = coords[((idx * 3)) + k] + newv[k];
 				//printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[k]);
 				//printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[((idx + 1) * 3) + k]);
 			}
+			//printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[12], coords[13], coords[14]);
+			
 		}
 
 		// Parte di aggiornamento per l'atomo C
 		for (int j = 0; j < 3; j++) {
 			v3[j] = coords[((idx + 1) * 3) + j] - coords[(idx * 3) + j];
+			printf("For iteration [%d, %d] v3[%d] is: %.3f\n", i, j, j, v3[j]);
+			
 			//printf("v3: %.3f, coords[idx + 1 + j]: %.3f - coords[idx + j]: %.3f\n", v3[j], coords[(idx + 1)*3 + j], coords[idx*3 + j] );
 		}
 		normalize(v3, 3);
+
+		printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v3[0], v3[1], v3[2]);
+			
 		
 		rot = rotation(v3, psi[i]);
+
+		printf("psi [%d]: %.3f\n", i, psi[i]);
+
+		printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
+
 
 		newv[0] = 0.0f;
 		newv[1] = r_ca_c;
@@ -756,10 +785,25 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 
 		newv = apply_rotation(newv, rot);
 
+		printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
+			
+
+		
+
 		for(int k = 0; k < 3; k++) {
 			coords[((idx + 2) * 3) + k] = coords[((idx + 1) * 3) + k] + newv[k];
 			//printf(" coords[((idx + 2) * 3) + k]: %.3f - coords[((idx + 1) * 3) + k]: %.3f  i: %d\n", coords[((idx + 2) * 3) + k], coords[((idx + 1) * 3) + k] , i);
 		
+		}
+
+		printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[15], coords[16], coords[17]);
+			
+		
+		if(i==2){
+			for(int j=0; j<18; j++){
+				printf("coords[%d]: %.3f\n", j, coords[j]);
+			}
+			exit(0);
 		}
 	
 	}
@@ -1012,19 +1056,6 @@ int main(int argc, char** argv) {
 	pst(input);
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
-
-	/*
-	printf("Testing `amino_index`...\n");
-    test_amino_index();
-    printf("\nTesting `distance`...\n");
-    test_distance();
-    printf("\nTesting `normalize`...\n");
-    test_normalize();
-    printf("\nTesting `rotation`...\n");
-    test_rotation();
-    printf("\nTesting `backbone`...\n");
-    test_backbone();
-	*/
 
 	if(!input->silent)
 		printf("PST time = %.3f secs\n", time);
