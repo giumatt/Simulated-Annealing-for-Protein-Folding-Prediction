@@ -65,7 +65,7 @@ type cosine(type);
 type sine(type);
 MATRIX rotation(VECTOR, type);
 VECTOR apply_rotation(VECTOR, MATRIX);
-void backbone(char*, MATRIX, VECTOR, VECTOR, int);
+void backbone(MATRIX, VECTOR, VECTOR, int);
 
 int amino_index(char);
 
@@ -294,123 +294,6 @@ void gen_rnd_mat(VECTOR v, int N){
 // PROCEDURE ASSEMBLY
 // extern void prova(params* input);
 
-
-///! Funzioni di test:
-/*
-void test_amino_index() {
-    char test_seq[] = "ACDEFGHIKLMNPQRSTVWY";
-    char invalid_seq[] = "XYZ123";
-    
-    printf("Testing `amino_index` with valid amino acids:\n");
-    for (int i = 0; i < strlen(test_seq); i++) {
-        int index = amino_index(test_seq[i]);
-        printf("Amino: %c, Index: %d\n", test_seq[i], index);
-        if (index == -1) {
-            printf("Error: Valid amino acid '%c' returned -1\n", test_seq[i]);
-        }
-    }
-    
-    printf("\nTesting `amino_index` with invalid characters:\n");
-    for (int i = 0; i < strlen(invalid_seq); i++) {
-        int index = amino_index(invalid_seq[i]);
-        printf("Invalid Char: %c, Index: %d\n", invalid_seq[i], index);
-        if (index != -1) {
-            printf("Error: Invalid character '%c' returned valid index %d\n", invalid_seq[i], index);
-        }
-    }
-}
-
-void test_distance() {
-    VECTOR v1 = alloc_matrix(1, 3);
-    VECTOR v2 = alloc_matrix(1, 3);
-
-    v1[0] = 0; v1[1] = 0; v1[2] = 0;
-    v2[0] = 3; v2[1] = 4; v2[2] = 0;
-
-    type dist = distance(v1, v2);
-    printf("Distance between [0,0,0] and [3,4,0]: %.3f\n", dist);
-    if (fabs(dist - 5.0) > 1e-6) {
-        printf("Error: Distance calculation is incorrect.\n");
-    }
-
-    dealloc_matrix(v1);
-    dealloc_matrix(v2);
-}
-
-
-void test_normalize() {
-    VECTOR v = alloc_matrix(1, 3);
-    v[0] = 3; v[1] = 4; v[2] = 0;
-
-    normalize(v, 3);
-    printf("Normalized vector: [%.3f, %.3f, %.3f]\n", v[0], v[1], v[2]);
-
-    type norm = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    printf("Norm after normalization: %.3f\n", norm);
-
-    if (fabs(norm - 1.0) > 1e-6) {
-        printf("Error: Normalization is incorrect.\n");
-    }
-
-    dealloc_matrix(v);
-}
-
-
-void test_rotation() {
-    VECTOR axis = alloc_matrix(1, 3);
-    axis[0] = 0; axis[1] = 0; axis[2] = 1; // Rotazione attorno a Z
-    type theta = M_PI / 2; // 90 gradi
-
-    MATRIX rot = rotation(axis, theta);
-    printf("Rotation Matrix for 90 degrees around Z-axis:\n");
-    for (int i = 0; i < 3; i++) {
-        printf("[%.3f, %.3f, %.3f]\n", rot[i * 3 + 0], rot[i * 3 + 1], rot[i * 3 + 2]);
-    }
-
-    // Test per verificare il determinante
-    type det = rot[0] * (rot[4] * rot[8] - rot[5] * rot[7])
-             - rot[1] * (rot[3] * rot[8] - rot[5] * rot[6])
-             + rot[2] * (rot[3] * rot[7] - rot[4] * rot[6]);
-    printf("Determinant of the rotation matrix: %.3f\n", det);
-
-    if (fabs(det - 1.0) > 1e-6) {
-        printf("Error: Rotation matrix determinant is incorrect.\n");
-    }
-
-    dealloc_matrix(axis);
-    dealloc_matrix(rot);
-}
-
-
-void test_backbone() {
-    int N = 5; // Numero di residui nella catena
-    VECTOR phi = (VECTOR) malloc(sizeof(float) * N);
-    VECTOR psi = (VECTOR) malloc(sizeof(float) * N);
-
-    // Definiamo una sequenza casuale e angoli noti
-    char seq[] = "ACDEFG";
-    for (int i = 0; i < N; i++) {
-        phi[i] = M_PI / 2; // 90° in radianti
-        psi[i] = M_PI / 2; // 90° in radianti
-    }
-
-    // Esegui la funzione backbone
-    MATRIX coords = backbone(seq, phi, psi, N);
-
-    // Stampa i risultati
-    printf("Backbone coordinates:\n");
-    for (int i = 0; i < 3 * N; i++) {
-        printf("Atom %d: [%f, %f, %f]\n", i,
-               coords[i * 3], coords[i * 3 + 1], coords[i * 3 + 2]);
-    }
-
-    // Libera memoria
-    free(phi);
-    free(psi);
-    free(coords);
-}
-*/
-
 void pst(params* input){
 	VECTOR phi = input->phi;
 	VECTOR psi = input->psi;
@@ -426,9 +309,9 @@ void pst(params* input){
   	//int cnt = 1;
 
 	while(T > 0.0f) {
+		printf("t: %d \n", t);
 
-		int i = rand() % (input->N);
-
+		int i = random() * (input->N);
 		type delta_phi = (random()*2 * M_PI) - M_PI;
 		type delta_psi = (random()*2 * M_PI) - M_PI;
 
@@ -445,7 +328,6 @@ void pst(params* input){
 
 		type new_E = energy(input->seq, phi, psi, coords, input->N);
 		//printf("new_E: %.3f, T: %.3f\n", new_E, T);
-		// type delta_energy = energy(input->seq, phi, psi, input->N) - E;
 
 		type delta_energy = new_E - E;
 		//printf("delta_energy %.3f, T: %.3f\n",  delta_energy, T);
@@ -469,11 +351,16 @@ void pst(params* input){
 				//printf("psi reset: %.3f  , delta_psi: %.3f, i: %d \n",  psi[i], delta_psi, i);
 			}
 		}
+		if(t==0){
+			exit(0);
+		}
 
 		t += 1;
 		T = to - sqrtf(input->alpha * t);
-    	// cnt++;
+    	//cnt++;
+		
 	}
+
 
 	input->e = E;
 	input->phi = phi;
@@ -491,21 +378,23 @@ type energy(char* seq, VECTOR phi, VECTOR psi, MATRIX coords, int N) {
 	type w_elec = 0.2f;
 	type w_pack = 0.3f;
 
-	backbone(seq, coords, phi, psi, N);
+	backbone(coords, phi, psi, N);
 
 	type rama_e = rama_energy(phi, psi, N);
-	//printf("Rama_e: %.3f\n", rama_e);
+	printf("Rama_e: %.3f\n", rama_e);
 	type hydro_e = hydrophobic_energy(seq, coords, N, hydrophobicity);
-	//printf("Hydro %.3f\n", hydro_e);
+	printf("Hydro %.3f\n", hydro_e);
 	type elec_e = electrostatic_energy(seq, coords, N, charge);
-	//printf("Elec: %.3f\n", elec_e);
+	printf("Elec: %.3f\n", elec_e);
 	type pack_e = packing_energy(seq, coords, N, volume);
-	//printf("Pack_e: %.3f\n", pack_e);
+	printf("Pack_e: %.3f\n", pack_e);
 
 	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
-	//printf("TOT_E: %.3f\n", tot_e);
-
+	printf("TOT_E: %.3f\n", tot_e);
+    printf("\n");
 	return tot_e;
+ 
+  
 }
 
 type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
@@ -534,19 +423,19 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
                 //printf("Distance: %.3f, i: %d\n", dist, i);
 				//if ((dist > 1e-6) && (dist < 10.0f)) {
                 if ((dist < 10.0f)) {
-                    int amminoacido_j = amino_index(seq[j]);
-                    if (volume[amminoacido_j] > 0.0f) {
-                        density += ((volume[amminoacido_j]) / (dist * dist * dist));
-                        //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
-                        //       seq[j], aminoacido_j, volume[aminoacido_j], density, dist);
+                    
+                    if (volume[seq[j]-65] > 0.0f) {
+                        density += ((volume[seq[j]-65]) / (dist * dist * dist));
+                        printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
+                               seq[j], seq[j]-65, volume[seq[j]-65], density, dist);
                     }
                 }
             }
         }
         // Calcolo della differenza di densità
-        int amminoacido_i = amino_index(seq[i]);
-        if (volume[amminoacido_i] > 0) {
-            type diff = volume[amminoacido_i] - density;
+        
+        if (volume[seq[i]-65] > 0) {
+            type diff = volume[seq[i]-65] - density;
             E += diff * diff;
         }
     }
@@ -577,17 +466,15 @@ type electrostatic_energy(char* seq, MATRIX coords, int N, type* charge) {
                 }
 
 			type dist = distance(v, w);
-
-			int amminoacido_i = amino_index(seq[i]);
-			int amminoacido_j = amino_index(seq[j]);
 			
 			//vedere se inserire le chiamate direttamente nell'if
-			if ((dist < 10.0f) && ((charge[amminoacido_i] != 0.0f) && (charge[amminoacido_j] != 0.0f))
-				&& ((volume[amminoacido_i] != -1.0f) && (volume[amminoacido_j] != -1.0f))) {
+			if ((dist < 10.0f) && ((charge[seq[i]-65] * charge[seq[j]-65]) != 0.0f)
+				&& ((volume[seq[i]-65] != -1.0f) && (volume[seq[j]-65] != -1.0f))) {
 				//la carica può essere anche -1, quindi verifico che l'amminoacido esista facendo riferimento a volume
-				E += ((charge[amminoacido_i] * charge[amminoacido_j]) / (dist * 4.0f));
+				E += ((charge[seq[i]-65] * charge[seq[j]-65]) / (dist * 4.0f));
 			}
 		}
+    
 	}
 
 	dealloc_matrix(v);
@@ -617,12 +504,11 @@ type hydrophobic_energy(char* seq, MATRIX coords, int N, type* hydrophobicity) {
 
 			type dist = distance(v, w);
 
-			int amminoacido_i = amino_index(seq[i]);
-			int amminoacido_j = amino_index(seq[j]);
+		
 
 			if ((dist < 10.0f) &&
-				((hydrophobicity[amminoacido_i] != -1.0f) && (hydrophobicity[amminoacido_j] != -1.0f))) {
-				E += ((hydrophobicity[amminoacido_i] * hydrophobicity[amminoacido_j]) / (dist));
+				((hydrophobicity[seq[i]-65] != -1.0f) && (hydrophobicity[seq[j]-65] != -1.0f))) {
+				E += ((hydrophobicity[seq[i]-65] * hydrophobicity[seq[j]-65]) / (dist));
 			}
 		}
 	}
@@ -653,24 +539,18 @@ type rama_energy(VECTOR phi, VECTOR psi, int N) {
             min = beta_dist;
 
         E += (0.5f * min);
+        /*
+        printf("Rama_energy[%d]: %.3f\n",i, E);
+        if (i == 256)
+          exit(0);
+        */
     }
 
     return E;
 }
 
-int amino_index(char amino) {
-    // Array di amminoacidi standard in ordine
-    const char aminoacids[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    for (int i = 0; i < 26; i++) {
-        if (aminoacids[i] == amino) {
-            return i; // Ritorna l'indice corrispondente
-        }
-    }
-    return -1;
-}
-
-void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
+void backbone(MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 	type r_ca_n = 1.46f;
 	type r_ca_c = 1.52f;
 	type r_c_n = 1.33f;
@@ -701,18 +581,20 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 
 		if (i > 0) {
 			// Parte di aggiornamento per l'atomo N
+            //printf("\n");
 			for (int j = 0; j < 3; j++) {
 				v1[j] = coords[((idx - 1) * 3) + j] - coords[((idx - 2) * 3) + j];
 				//v1[j] = coords[((idx - 2) * 3) + j] - coords[((idx - 1) * 3) + j];
-				printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
-				// printf("idx: %d\n", idx);
+                //printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
+				//printf("idx: %d\n", idx);
 			}
+            //printf("\n");
 			normalize(v1, 3);
-			printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v1[0], v1[1], v1[2]);
+			//printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v1[0], v1[1], v1[2]);
 			
 			rot = rotation(v1, theta_c_n_ca);
 
-			printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
+			//printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
 
 			newv[0] = 0.0f;
 			newv[1] = r_c_n;
@@ -720,27 +602,28 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 
 			newv = apply_rotation(newv, rot);
 
-			printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
+			//printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
 			
 			for(int k = 0; k < 3; k++)
 				coords[(idx * 3) + k] = coords[((idx - 1) * 3) + k] + (newv[k]);
-			printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[9], coords[10], coords[11]);
+			    //printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[9], coords[10], coords[11]);
 			
 			// Parte di aggiornamento per l'atomo C_a
+             //printf("\n");
 			for (int j = 0; j < 3; j++){
 				v2[j] = coords[(idx * 3) + j] - coords[((idx - 1) * 3) + j];
-				printf("For iteration [%d, %d] v2[%d] is: %.3f\n", i, j, j, v2[j]);
+				//printf("For iteration [%d, %d] v2[%d] is: %.3f\n", i, j, j, v2[j]);
 			}
-				
+			//printf("\n");
 			normalize(v2, 3);
 
-			printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v2[0], v2[1], v2[2]);
+			//printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v2[0], v2[1], v2[2]);
 			
 			rot = rotation(v2, phi[i]);
 
-			printf("phi [%d]: %.3f\n", i, phi[i]);
+			//printf("phi [%d]: %.3f\n", i, phi[i]);
 
-			printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
+			//printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
 
 	
 			newv[0] = 0.0f;
@@ -748,7 +631,7 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 			newv[2] = 0.0f;
 
 			newv = apply_rotation(newv, rot);
-			printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
+			//printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
 			
 			
 			for(int k = 0; k < 3; k++) {
@@ -761,22 +644,24 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 		}
 
 		// Parte di aggiornamento per l'atomo C
+        //printf("\n");
 		for (int j = 0; j < 3; j++) {
 			v3[j] = coords[((idx + 1) * 3) + j] - coords[(idx * 3) + j];
-			printf("For iteration [%d, %d] v3[%d] is: %.3f\n", i, j, j, v3[j]);
+			//printf("For iteration [%d, %d] v3[%d] is: %.3f\n", i, j, j, v3[j]);
 			
 			//printf("v3: %.3f, coords[idx + 1 + j]: %.3f - coords[idx + j]: %.3f\n", v3[j], coords[(idx + 1)*3 + j], coords[idx*3 + j] );
 		}
+        //printf("\n");
 		normalize(v3, 3);
 
-		printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v3[0], v3[1], v3[2]);
+		//printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v3[0], v3[1], v3[2]);
 			
 		
 		rot = rotation(v3, psi[i]);
 
-		printf("psi [%d]: %.3f\n", i, psi[i]);
+		//printf("psi [%d]: %.3f\n", i, psi[i]);
 
-		printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
+	    //printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
 
 
 		newv[0] = 0.0f;
@@ -785,27 +670,26 @@ void backbone(char* seq, MATRIX coords, VECTOR phi, VECTOR psi, int N) {
 
 		newv = apply_rotation(newv, rot);
 
-		printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
+		//printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
 			
-
-		
 
 		for(int k = 0; k < 3; k++) {
 			coords[((idx + 2) * 3) + k] = coords[((idx + 1) * 3) + k] + newv[k];
-			//printf(" coords[((idx + 2) * 3) + k]: %.3f - coords[((idx + 1) * 3) + k]: %.3f  i: %d\n", coords[((idx + 2) * 3) + k], coords[((idx + 1) * 3) + k] , i);
+			//printf("coords[((idx + 2) * 3) + k]: %.3f - coords[((idx + 1) * 3) + k]: %.3f  i: %d\n", coords[((idx + 2) * 3) + k], coords[((idx + 1) * 3) + k] , i);
 		
 		}
 
-		printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[15], coords[16], coords[17]);
+		//printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[15], coords[16], coords[17]);
 			
-		
 		if(i==2){
+            //printf("\n");
+            //printf("First 18 coords are:\n");
 			for(int j=0; j<18; j++){
-				printf("coords[%d]: %.3f\n", j, coords[j]);
+				//printf("coords[%d]: %.3f\n", j, coords[j]);
 			}
-			exit(0);
+			//exit(0);
 		}
-	
+    
 	}
 
 	dealloc_matrix(v1);
@@ -854,7 +738,7 @@ MATRIX rotation(VECTOR axis, type theta) {
 	for(int i = 0; i < 9; i++)
 		rot[i] = 0;
 
-	type scalar = sqrtf(pow(axis[0], 2) + pow(axis[1], 2) + pow(axis[2], 2));
+	type scalar = sqrtf((axis[0]*axis[0]) + (axis[1]*axis[1]) + (axis[2]*axis[2]));
 	for(int i = 0; i < 3; i++) {
 		axis[i] = axis[i] / scalar;
 	}
@@ -867,15 +751,15 @@ MATRIX rotation(VECTOR axis, type theta) {
 		bcd[i] = (-1.0f) * (axis[i]) * (sine(theta / 2.0f));
 	}
 
-	rot[0] = (pow(a, 2)) + (pow(bcd[0], 2)) - (pow(bcd[1], 2)) - (pow(bcd[2], 2));
+	rot[0] = (a*a) + (bcd[0]*bcd[0]) - (bcd[1]*bcd[1]) - (bcd[2]*bcd[2]);
 	rot[1] = (2.0f) * ((bcd[0]) * (bcd[1]) + (a * bcd[2]));
 	rot[2] = (2.0f) * ((bcd[0]) * (bcd[2]) - (a * bcd[1]));
 	rot[3] = (2.0f) * ((bcd[0]) * (bcd[1]) - (a * bcd[2]));
-	rot[4] = (pow(a, 2)) + (pow(bcd[1], 2)) - (pow(bcd[0], 2)) - (pow(bcd[2], 2));
+	rot[4] = (a*a) + (bcd[1]*bcd[1]) - (bcd[0]*bcd[0]) - (bcd[2]*bcd[2]);
 	rot[5] = (2.0f) * ((bcd[1]) * (bcd[2]) + (a * bcd[0]));
 	rot[6] = (2.0f) * ((bcd[0]) * (bcd[2]) + (a * bcd[1]));
 	rot[7] = (2.0f) * ((bcd[1]) * (bcd[2]) - (a * bcd[0]));
-	rot[8] = (pow(a, 2)) + (pow(bcd[2], 2)) - (pow(bcd[0], 2)) - (pow(bcd[1], 2));
+	rot[8] = (a*a) + (bcd[2]*bcd[2]) - (bcd[0]*bcd[0]) - (bcd[1]*bcd[1]);
 
 	dealloc_matrix(bcd);
 
@@ -1032,10 +916,9 @@ int main(int argc, char** argv) {
 	input->psi = alloc_matrix(input->N, 1);
 	// Impostazione seed 
 	srand(input->sd);
-	// Inizializzazione dei valori
+  	// Inizializzazione dei valori
 	gen_rnd_mat(input->phi, input->N);
 	gen_rnd_mat(input->psi, input->N);
-
 	//
 	// Visualizza il valore dei parametri
 	//
