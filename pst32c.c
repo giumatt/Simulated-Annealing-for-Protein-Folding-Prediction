@@ -67,7 +67,6 @@ MATRIX rotation(VECTOR, type);
 VECTOR apply_rotation(VECTOR, MATRIX);
 void backbone(MATRIX, VECTOR, VECTOR, int);
 
-int amino_index(char);
 
 type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};		// hydrophobicity
 type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};		// volume
@@ -309,7 +308,7 @@ void pst(params* input){
   	//int cnt = 1;
 
 	while(T > 0.0f) {
-		printf("t: %d \n", t);
+		//printf("t: %d \n", t);
 
 		int i = random() * (input->N);
 		type delta_phi = (random()*2 * M_PI) - M_PI;
@@ -351,9 +350,9 @@ void pst(params* input){
 				//printf("psi reset: %.3f  , delta_psi: %.3f, i: %d \n",  psi[i], delta_psi, i);
 			}
 		}
-		if(t==0){
-			exit(0);
-		}
+		//if(t==0){
+		//	exit(0);
+		//}
 
 		t += 1;
 		T = to - sqrtf(input->alpha * t);
@@ -381,17 +380,17 @@ type energy(char* seq, VECTOR phi, VECTOR psi, MATRIX coords, int N) {
 	backbone(coords, phi, psi, N);
 
 	type rama_e = rama_energy(phi, psi, N);
-	printf("Rama_e: %.3f\n", rama_e);
+	//printf("Rama_e: %.3f\n", rama_e);
 	type hydro_e = hydrophobic_energy(seq, coords, N, hydrophobicity);
-	printf("Hydro %.3f\n", hydro_e);
+	//printf("Hydro %.3f\n", hydro_e);
 	type elec_e = electrostatic_energy(seq, coords, N, charge);
-	printf("Elec: %.3f\n", elec_e);
+	//printf("Elec: %.3f\n", elec_e);
 	type pack_e = packing_energy(seq, coords, N, volume);
-	printf("Pack_e: %.3f\n", pack_e);
+	//printf("Pack_e: %.3f\n", pack_e);
 
 	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
-	printf("TOT_E: %.3f\n", tot_e);
-    printf("\n");
+	//printf("TOT_E: %.3f\n", tot_e);
+    //printf("\n");
 	return tot_e;
  
   
@@ -426,8 +425,8 @@ type packing_energy(char* seq, MATRIX coords, int N, type* volume) {
                     
                     if (volume[seq[j]-65] > 0.0f) {
                         density += ((volume[seq[j]-65]) / (dist * dist * dist));
-                        printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
-                               seq[j], seq[j]-65, volume[seq[j]-65], density, dist);
+                        //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
+                        //       seq[j], seq[j]-65, volume[seq[j]-65], density, dist);
                     }
                 }
             }
