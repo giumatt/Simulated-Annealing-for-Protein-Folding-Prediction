@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# Chiedi all'utente quale architettura usare
 echo "Choose the architecture to launch:"
 echo "1) 32-bit (runpst32)"
 echo "2) 64-bit (runpst64)"
 read -p "Type the number of your choice (1 or 2): " choice
 
-# Verifica l'opzione selezionata
 if [[ "$choice" == "1" ]]; then
     command="./runpst32"
 elif [[ "$choice" == "2" ]]; then
