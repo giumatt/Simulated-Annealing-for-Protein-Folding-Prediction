@@ -47,7 +47,7 @@
 #include <libgen.h>
 #include <xmmintrin.h>
 
-#define	type		double
+#define	type		float
 #define	MATRIX		type*
 #define	VECTOR		type*
 
