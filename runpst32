@@ -1,4 +1,5 @@
 #!/bin/bash
+
 if [[ ! -e sseutils32.o ]]; then nasm -f elf32 sseutils32.nasm; fi;
 for f in $(ls *32.nasm); do
 	nasm -f elf32 $f;
