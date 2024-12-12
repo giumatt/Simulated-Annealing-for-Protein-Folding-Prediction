@@ -307,64 +307,37 @@ void pst(params* input){
 	type T = to;
 
 	type E = energy(input->seq, phi, psi, input->N);
-	//printf("Energia iniziale: %.3f\n", E);
 
 	int t = 0;
-  	//int cnt = 1;
 
 	while(T > 0.0f) {
-		//printf("t: %d \n", t);
-
 		int i = random() * (input->N);
 		type delta_phi = (random()*2 * M_PI) - M_PI;
 		type delta_psi = (random()*2 * M_PI) - M_PI;
-
-    	//printf("\n");
-    	//if(T<20) printf("Inizio %d iterazione da qui:\n", cnt);
-    	//printf("phi_i[%d]: %.3f, psi_i[%d]: %.3f\n", i, phi[i], i, psi[i]);
-		//printf("delta_phi: %.3f , delta_psi: %.3f, T: %.3f\n", delta_phi, delta_psi, T);
 		
 		phi[i] = phi[i] + delta_phi;
 		psi[i] = psi[i] + delta_psi;
 
-		//printf("phi[%d] %.3f, delta_phi %.3f, T: %.3f\n", i, phi[i], delta_phi, T);
-		//printf("psi[%d] %.3f, delta_psi %.3f, T: %.3f\n", i, psi[i], delta_psi, T);
-
 		type new_E = energy(input->seq, phi, psi, input->N);
-		//printf("new_E: %.3f, T: %.3f\n", new_E, T);
 
 		type delta_energy = new_E - E;
-		//printf("delta_energy %.3f, T: %.3f\n",  delta_energy, T);
-
+	
 		if (delta_energy <= 0) {
 			E = new_E;
-      		//printf("Configurazione accettata per decremento energia!\n");
 		} else {
-			//printf("delta_energy_else: %.3f, T: %.3f\n",  delta_energy, T);
 			type P = (exp((-delta_energy) / (input->k * T)));
 			type r = random();
-			//printf("p %.3f, r: %.3f  \n", P, r);
 			if (r <= P) {
 				E = new_E;
-				//printf("Configurazione accettata con prob: %.3f, E: %.3f, T: %.3f\n", r, E, T);
 			}else {
-        		//printf("Configurazione rifiutata! Reset dei vettori:\n");
 				phi[i] = phi[i] - delta_phi;
 				psi[i] = psi[i] - delta_psi;
-				//printf("phi reset: %.3f  , delta_phi: %.3f, i: %d \n",  phi[i], delta_phi, i);
-				//printf("psi reset: %.3f  , delta_psi: %.3f, i: %d \n",  psi[i], delta_psi, i);
 			}
 		}
-		//if(t==0){
-		//	exit(0);
-		//}
 
 		t += 1;
-		T = to - sqrtf(input->alpha * t);
-    	//cnt++;
-		
+		T = to - sqrtf(input->alpha * t);		
 	}
-
 
 	input->e = E;
 	input->phi = phi;
@@ -383,24 +356,21 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	type w_pack = 0.3f;
 
 	backbone(phi, psi, N);
+	
 	all_distances(N);
+
 	type rama_e = rama_energy(phi, psi, N);
-	//printf("Rama_e: %.3f\n", rama_e);
+
 	type hydro_e = hydrophobic_energy(seq, N);
-	//printf("Hydro %.3f\n", hydro_e);
+
 	type elec_e = electrostatic_energy(seq, N);
-	//printf("Elec: %.3f\n", elec_e);
+
 	type pack_e = packing_energy(seq, N);
-	//printf("Pack_e: %.3f\n", pack_e);
 
 	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
-	//printf("TOT_E: %.3f\n", tot_e);
-    //printf("\n");
 
 	dealloc_matrix(distances);
-	return tot_e;
- 
-  
+	return tot_e;  
 }
 
 type packing_energy(char* seq, int N) {
@@ -411,18 +381,14 @@ type packing_energy(char* seq, int N) {
         for (int j = 0; j < N; j++) {
             if (i != j) {
 				type dist =distances[get_distance_index(i,j,N)];
-                //printf("Distance: %.3f, i: %d\n", dist, i);
                 if ((dist < 10.0f)) {
                     if (volume[seq[j]-65] > 0.0f) {
                         density += ((volume[seq[j]-65]) / (dist * dist * dist));
-                        //printf("Amminoacido: %c, Indice: %d, Volume: %.3f, Densità: %.3f, Distance: %.3f\n",
-                        //       seq[j], seq[j]-65, volume[seq[j]-65], density, dist);
                     }
                 }
             }
         }
-        // Calcolo della differenza di densità
-        
+
         if (volume[seq[i]-65] > 0) {
             type diff = volume[seq[i]-65] - density;
             E += diff * diff;
@@ -440,7 +406,6 @@ type electrostatic_energy(char* seq, int N) {
 		type density = 0;
 		for(int j = i + 1; j < N; j++) {
 			type dist =distances[get_distance_index(i,j,N)];
-			//vedere se inserire le chiamate direttamente nell'if
 			if ((dist < 10.0f) && ((charge[seq[i]-65] * charge[seq[j]-65]) != 0.0f)
 				&& ((volume[seq[i]-65] != -1.0f) && (volume[seq[j]-65] != -1.0f))) {
 				//il controllo sul volume non fa variare il calcolo
@@ -448,7 +413,6 @@ type electrostatic_energy(char* seq, int N) {
 				E += ((charge[seq[i]-65] * charge[seq[j]-65]) / (dist * 4.0f));
 			}
 		}
-    
 	}
 
 	return E;
@@ -459,9 +423,7 @@ type hydrophobic_energy(char* seq, int N) {
 
 	for(int i = 0; i < N; i++) {
 		for(int j = i + 1; j < N; j++) {
-			//type dist = distance(i, j);
 			type dist =distances[get_distance_index(i,j,N)];
-
 			if ((dist < 10.0f) &&
 				((hydrophobicity[seq[i]-65] != -1.0f) && (hydrophobicity[seq[j]-65] != -1.0f))) {
 				E += ((hydrophobicity[seq[i]-65] * hydrophobicity[seq[j]-65]) / (dist));
@@ -492,7 +454,6 @@ type rama_energy(VECTOR phi, VECTOR psi, int N) {
             min = beta_dist;
 
         E += (0.5f * min);
-
     }
 
     return E;
@@ -530,21 +491,13 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 		if (i > 0) {
 			// Parte di aggiornamento per l'atomo N
-            //printf("\n");
 			v1[0] = coords[((idx - 1) * 3) ] - coords[((idx - 2) * 3) + 0];
 			v1[1] = coords[((idx - 1) * 3) + 1] - coords[((idx - 2) * 3) + 1];
 			v1[2] = coords[((idx - 1) * 3) + 2] - coords[((idx - 2) * 3) + 2];
-				//v1[j] = coords[((idx - 2) * 3) + j] - coords[((idx - 1) * 3) + j];
-                //printf("For iteration [%d, %d] v1[%d] is: %.3f\n", i, j, j, v1[j]);
-				//printf("idx: %d\n", idx);
 			
-            //printf("\n");
 			normalize(v1);
-			//printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v1[0], v1[1], v1[2]);
 			
 			rot = rotation(v1, theta_c_n_ca);
-
-			//printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
 
 			newv[0] = 0.0f;
 			newv[1] = r_c_n;
@@ -552,75 +505,38 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 			newv = apply_rotation(newv, rot);
 
-			//printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
-			
-			
 			coords[(idx * 3) + 0] = coords[((idx - 1) * 3) + 0] + (newv[0]);
 			coords[(idx * 3) + 1] = coords[((idx - 1) * 3) + 1] + (newv[1]);
 			coords[(idx * 3) + 2] = coords[((idx - 1) * 3) + 2] + (newv[2]);
-			    //printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[9], coords[10], coords[11]);
 			
 			// Parte di aggiornamento per l'atomo C_a
-             //printf("\n");
-			
 			v2[0] = coords[(idx * 3) + 0] - coords[((idx - 1) * 3) + 0];
 			v2[1] = coords[(idx * 3) + 1] - coords[((idx - 1) * 3) + 1];
 			v2[2] = coords[(idx * 3) + 2] - coords[((idx - 1) * 3) + 2];
-				//printf("For iteration [%d, %d] v2[%d] is: %.3f\n", i, j, j, v2[j]);
-			
-			//printf("\n");
+
 			normalize(v2);
 
-			//printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v2[0], v2[1], v2[2]);
-			
 			rot = rotation(v2, phi[i]);
-
-			//printf("phi [%d]: %.3f\n", i, phi[i]);
-
-			//printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
-
 	
 			newv[0] = 0.0f;
 			newv[1] = r_ca_n;
 			newv[2] = 0.0f;
 
 			newv = apply_rotation(newv, rot);
-			//printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
-			
-			
 			
 			coords[((idx + 1) * 3) + 0] = coords[((idx * 3)) + 0] + newv[0];
 			coords[((idx + 1) * 3) + 1] = coords[((idx * 3)) + 1] + newv[1];
 			coords[((idx + 1) * 3) + 2] = coords[((idx * 3)) + 2] + newv[2];
-				//printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[k]);
-				//printf("New coords at position [%d, %d] is: %.3f\n", i, k, coords[((idx + 1) * 3) + k]);
-			
-			//printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[12], coords[13], coords[14]);
-			
 		}
 
 		// Parte di aggiornamento per l'atomo C
-        //printf("\n");
-		
 		v3[0] = coords[((idx + 1) * 3) + 0] - coords[(idx * 3) + 0];
 		v3[1] = coords[((idx + 1) * 3) + 1] - coords[(idx * 3) + 1];
 		v3[2] = coords[((idx + 1) * 3) + 2] - coords[(idx * 3) + 2];
-			//printf("For iteration [%d, %d] v3[%d] is: %.3f\n", i, j, j, v3[j]);
-			
-			//printf("v3: %.3f, coords[idx + 1 + j]: %.3f - coords[idx + j]: %.3f\n", v3[j], coords[(idx + 1)*3 + j], coords[idx*3 + j] );
-		
-        //printf("\n");
+
 		normalize(v3);
 
-		//printf("normalize [%d] is:  %.3f, %.3f, %.3f\n", i, v3[0], v3[1], v3[2]);
-			
-		
 		rot = rotation(v3, psi[i]);
-
-		//printf("psi [%d]: %.3f\n", i, psi[i]);
-
-	    //printf("rotation [%d] is:  %.3f, %.3f, %.3f ,%.3f, %.3f, %.3f, %.3f, %.3f, %.3f\n", i, rot[0], rot[1], rot[2],rot[3], rot[4], rot[5],rot[6], rot[7], rot[8]);
-
 
 		newv[0] = 0.0f;
 		newv[1] = r_ca_c;
@@ -628,20 +544,9 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 		newv = apply_rotation(newv, rot);
 
-		//printf("apply rotation [%d] is:  %.3f, %.3f, %.3f\n", i, newv[0], newv[1], newv[2]);
-			
-
-		
 		coords[((idx + 2) * 3) + 0] = coords[((idx + 1) * 3) + 0] + newv[0];
 		coords[((idx + 2) * 3) + 1] = coords[((idx + 1) * 3) + 1] + newv[1];
-		coords[((idx + 2) * 3) + 2] = coords[((idx + 1) * 3) + 2] + newv[2];
-			//printf("coords[((idx + 2) * 3) + k]: %.3f - coords[((idx + 1) * 3) + k]: %.3f  i: %d\n", coords[((idx + 2) * 3) + k], coords[((idx + 1) * 3) + k] , i);
-		
-		
-
-		//printf("coords [%d] is:  %.3f, %.3f, %.3f\n", i, coords[15], coords[16], coords[17]);
-			
-    
+		coords[((idx + 2) * 3) + 2] = coords[((idx + 1) * 3) + 2] + newv[2];    
 	}
 
 	dealloc_matrix(v1);
@@ -653,7 +558,7 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 
 void all_distances(int N) {
-    int num_distances = (N * (N - 1)) / 2; // Numero di coppie uniche
+    int num_distances = (N * (N - 1)) / 2; 		// Numero di coppie uniche
     distances = alloc_matrix(num_distances, 1);
 
     int idx = 0;
@@ -681,9 +586,6 @@ int get_distance_index(int i, int j, int N) {
     }
     return i * (N - 1) - (i * (i + 1)) / 2 + (j - 1);
 }
-
-
-
 
 /*
 type distance(int i, int j) {
