@@ -627,11 +627,7 @@ MATRIX rotation(VECTOR axis, type theta) {
 	for(int i = 0; i < 9; i++)
 		rot[i] = 0;
 
-	type scalar = sqrtf((axis[0]*axis[0]) + (axis[1]*axis[1]) + (axis[2]*axis[2]));
-
-	axis[0] = axis[0] / scalar;
-	axis[1] = axis[1] / scalar;
-	axis[2] = axis[2] / scalar;
+	normalize(axis);
 
 	type a = cosine(theta / 2.0f);
 
