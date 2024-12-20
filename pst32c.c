@@ -352,8 +352,6 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	type w_pack = 0.3f;
 
 	backbone(phi, psi, N);
-	
-	all_distances(N);
 
 	type rama_e = rama_energy(phi, psi, N);
 
@@ -365,7 +363,6 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
 
-	dealloc_matrix(distances);
 	return tot_e;  
 }
 
@@ -376,7 +373,7 @@ type packing_energy(char* seq, int N) {
         type density = 0;
         for (int j = 0; j < N; j++) {
             if (i != j) {
-				type dist =distances[get_distance_index(i,j,N)];
+				type dist = distances[get_distance_index(i,j,N)];
                 if ((dist < 10.0f)) {
                     if (volume[seq[j]-65] > 0.0f) {
                         density += ((volume[seq[j]-65]) / (dist * dist * dist));
