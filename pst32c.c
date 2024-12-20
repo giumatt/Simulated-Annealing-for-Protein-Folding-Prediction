@@ -334,7 +334,6 @@ void pst(params* input){
 				psi[i] = psi[i] - delta_psi;
 			}
 		}
-
 		t += 1;
 		T = to - sqrtf(input->alpha * t);		
 	}
@@ -644,6 +643,9 @@ MATRIX rotation(VECTOR axis, type theta) {
 	bcd[0] = (-1.0f) * (axis[0]) * (sine_theta);
 	bcd[1] = (-1.0f) * (axis[1]) * (sine_theta);
 	bcd[2] = (-1.0f) * (axis[2]) * (sine_theta);
+
+	//printf("BCD: %.3f, %.3f, %.3f\n", bcd[0], bcd[1], bcd[2]);
+	//exit(0);
 
 	rot[0] = (a*a) + (bcd[0]*bcd[0]) - (bcd[1]*bcd[1]) - (bcd[2]*bcd[2]);
 	rot[1] = (2.0f) * ((bcd[0]) * (bcd[1]) + (a * bcd[2]));

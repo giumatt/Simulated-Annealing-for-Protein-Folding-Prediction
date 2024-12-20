@@ -24,5 +24,5 @@ SD=3
 if [[ "$command" == "./runpst64" ]]; then
     "$command" -seq "$SEQ" -to "$TO" -k "$K" -alpha "$ALPHA" -sd "$SD" -d
 else
-    "$command" -seq "$SEQ" -to "$TO" -k "$K" -alpha "$ALPHA" -sd "$SD" -d
+    "$command" -seq "$SEQ" -to "$TO" -k "$K" -alpha "$ALPHA" -sd "$SD" -s
 fi
