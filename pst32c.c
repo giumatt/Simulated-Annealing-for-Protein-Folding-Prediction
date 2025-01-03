@@ -67,11 +67,15 @@ MATRIX rotation(VECTOR, type);
 VECTOR apply_rotation(VECTOR, MATRIX);
 void backbone(VECTOR, VECTOR, int);
 
+void all_distances(int);
+int get_distance_index(int, int, int);
+
 type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.9, 3.8, 1.9, -3.5, -1, -1.6, -3.5, -4.5, -0.8, -0.7, -1, 4.2, -0.9, -1, -1.3, -1};		// hydrophobicity
 type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};		// volume
 type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};		// charge
 
 MATRIX coords;
+VECTOR distances;
 
 typedef struct {
 	char* seq;		// sequenza di amminoacidi
@@ -353,6 +357,8 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 
 	backbone(phi, psi, N);
 
+	all_distances(N);
+
 	type rama_e = rama_energy(phi, psi, N);
 
 	type hydro_e = hydrophobic_energy(seq, N);
@@ -549,6 +555,38 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 	dealloc_matrix(newv);
 }
 
+void all_distances(int N) {
+    int num_distances = (N * (N - 1)) / 2; // Numero di coppie uniche
+    distances = alloc_matrix(num_distances, 1);
+
+    int idx = 0;
+    for (int i = 0; i < N; i++) {
+        for (int j = i + 1; j < N; j++) {
+            type dist = 0.0f;
+            type diff0 = coords[(i * 9) + 3 + 0] - coords[(j * 9) + 3 + 0];
+			type diff1 = coords[(i * 9) + 3 + 1] - coords[(j * 9) + 3 + 1];
+			type diff2 = coords[(i * 9) + 3 + 2] - coords[(j * 9) + 3 + 2];
+			dist = diff0 * diff0 + diff1 * diff1 + diff2 * diff2;
+
+            distances[idx] = sqrtf(dist);
+            idx++;
+        }
+    }
+
+}
+int get_distance_index(int i, int j, int N) {
+		//printf("%d, %d, %d\n", i, j, N);
+		
+    if (i > j) {
+        // Scambia i e j per garantire i < j
+        int temp = i;
+        i = j;
+        j = temp;
+    }
+	//printf("%.3f\n", distances[i * (N - 1) - (i * (i + 1)) / 2 + (j - 1)]);
+    return i * (N - 1) - (i * (i + 1)) / 2 + (j - 1);
+}
+/*
 type distance(int i, int j) {
     type dist = 0.0;
     for (int k = 0; k < 3; k++) {
@@ -558,7 +596,7 @@ type distance(int i, int j) {
     }
 	return sqrtf(dist);
 }
-
+*/
 void normalize(VECTOR v) {
     type norm = 0;
     norm = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
