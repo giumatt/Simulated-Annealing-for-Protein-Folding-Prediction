@@ -50,7 +50,7 @@ nasm -f elf32 pst32.nasm && gcc -m32 -msse -O0 -no-pie sseutils32.o pst32.o pst3
 - **`pst32c.c`**: C source code.
 - **`pst32.nasm`**: Assembly source code for optimizations.
 - **`README.md`**: Project documentation.
-- **`phi256.ds2`**: Example file containing an amino acid sequence.
+- **`seq_256.ds2`**: Example file containing an amino acid sequence.
 - **`output/`**: Folder for execution results (predicted φ and ψ).
 
 ---
@@ -106,5 +106,5 @@ nasm -f elf32 pst32.nasm && gcc -m32 -msse -O0 -no-pie sseutils32.o pst32.o pst3
 - **`pst32c.c`**: Codice sorgente in linguaggio C.
 - **`pst32.nasm`**: Codice sorgente in linguaggio Assembly per ottimizzazioni.
 - **`README.md`**: Documentazione del progetto.
-- **`phi256.ds2`**: File di esempio contenente una sequenza aminoacidica.
+- **`seq_256.ds2`**: File di esempio contenente una sequenza aminoacidica.
 - **`output/`**: Cartella per i risultati dell'esecuzione (`φ` e `ψ` predetti).
