@@ -835,17 +835,20 @@ int main(int argc, char** argv) {
 	t = clock() - t;
 	time = ((float)t)/CLOCKS_PER_SEC;
 
-	if(!input->silent)
-		printf("PST time = %.3f secs\n", time);
-	else
-		printf("%.3f\n", time);
+	if(!input->silent) {
+        printf("PST time = %.3f secs\n", time);
+        printf("Energy = %f\n", input->e);
+	} else {
+        printf("%.3f\n", time);
+        printf("%f\n", input->e);
+	}
 
 	//
 	// Salva il risultato
 	//
-	sprintf(fname_phi, "out32_%d_%d_phi.ds2", input->N, input->sd);
+	sprintf(fname_phi, "out32_%d_%d_%.3f_%.3f_%.3f_phi.ds2", input->N, input->sd, input->to, input->alpha, input->k);
 	save_out(fname_phi, input->phi, input->N);
-	sprintf(fname_psi, "out32_%d_%d_psi.ds2", input->N, input->sd);
+	sprintf(fname_psi, "out32_%d_%d_%.3f_%.3f_%.3f_psi.ds2", input->N, input->sd, input->to, input->alpha, input->k);
 	save_out(fname_psi, input->psi, input->N);
 	if(input->display){
 		if(input->phi == NULL || input->psi==NULL)				//!!! abbiamo inserito input->psi==NULL, prima era input->psi
