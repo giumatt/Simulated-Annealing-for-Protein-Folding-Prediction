@@ -73,8 +73,8 @@ type hydrophobicity[] = {1.8, -1, 2.5, -3.5, -3.5, 2.8, -0.4, -3.2, 4.5, -1, -3.
 type volume[] = {88.6, -1, 108.5, 111.1, 138.4, 189.9, 60.1, 153.2, 166.7, -1, 168.6, 166.7, 162.9, 114.1, -1, 112.7, 143.8, 173.4, 89.0, 116.1, -1, 140.0, 227.8, -1, 193.6, -1};
 type charge[] = {0, -1, 0, -1, -1, 0, 0, 0.5, 0, -1, 1, 0, 0, 0, -1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, -1};
 
-MATRIX coords;
-MATRIX distances;
+MATRIX coords;		// Matrice delle coordinate
+MATRIX distances;	// Vettore delle distanze
 
 typedef struct {
 	char* seq;		// sequenza di amminoacidi
@@ -294,12 +294,10 @@ void gen_rnd_mat(VECTOR v, int N){
 	}
 }
 
-// PROCEDURE ASSEMBLY
-extern void prova(params* input);
-
 void pst(params* input){
 	VECTOR phi = input->phi;
 	VECTOR psi = input->psi;
+
   	coords = alloc_matrix(3 * input->N, 3);
 
 	type to = input->to;
@@ -311,8 +309,8 @@ void pst(params* input){
 
 	while(T > 0.0f) {
 		int i = random() * (input->N);
-		type delta_phi = (random()*2 * M_PI) - M_PI;
-		type delta_psi = (random()*2 * M_PI) - M_PI;
+		type delta_phi = (random() * 2 * M_PI) - M_PI;
+		type delta_psi = (random() * 2 * M_PI) - M_PI;
 		
 		phi[i] = phi[i] + delta_phi;
 		psi[i] = psi[i] + delta_psi;
@@ -369,6 +367,7 @@ type energy(char* seq, VECTOR phi, VECTOR psi, int N) {
 	type tot_e = (w_rama * rama_e) + (w_hydro * hydro_e) + (w_elec * elec_e) + (w_pack * pack_e);
 
 	dealloc_matrix(distances);
+
 	return tot_e;  
 }
 
@@ -379,17 +378,17 @@ type packing_energy(char* seq, int N) {
         type density = 0;
         for (int j = 0; j < N; j++) {
             if (i != j) {
-				type dist =distances[get_distance_index(i,j,N)];
+				type dist = distances[get_distance_index(i, j, N)];
                 if ((dist < 10.0f)) {
                     if (volume[seq[j]-65] > 0.0f) {
-                        density += ((volume[seq[j]-65]) / (dist * dist * dist));
+                        density += ((volume[seq[j] - 65]) / (dist * dist * dist));
                     }
                 }
             }
         }
 
-        if (volume[seq[i]-65] > 0) {
-            type diff = volume[seq[i]-65] - density;
+        if (volume[seq[i] - 65] > 0) {
+            type diff = volume[seq[i] - 65] - density;
             E += diff * diff;
         }
     }
@@ -398,18 +397,17 @@ type packing_energy(char* seq, int N) {
 }
 
 type electrostatic_energy(char* seq, int N) {
-
 	type E = 0.0f;
 
 	for(int i = 0; i < N; i++) {
 		type density = 0;
 		for(int j = i + 1; j < N; j++) {
-			type dist =distances[get_distance_index(i,j,N)];
-			if ((dist < 10.0f) && ((charge[seq[i]-65] * charge[seq[j]-65]) != 0.0f)
-				&& ((volume[seq[i]-65] != -1.0f) && (volume[seq[j]-65] != -1.0f))) {
+			type dist = distances[get_distance_index(i, j, N)];
+			if ((dist < 10.0f) && ((charge[seq[i] - 65] * charge[seq[j] - 65]) != 0.0f)
+				&& ((volume[seq[i] - 65] != -1.0f) && (volume[seq[j] - 65] != -1.0f))) {
 				//il controllo sul volume non fa variare il calcolo
 				//la carica può essere anche -1, quindi verifico che l'amminoacido esista facendo riferimento a volume
-				E += ((charge[seq[i]-65] * charge[seq[j]-65]) / (dist * 4.0f));
+				E += ((charge[seq[i] - 65] * charge[seq[j] - 65]) / (dist * 4.0f));
 			}
 		}
 	}
@@ -422,10 +420,10 @@ type hydrophobic_energy(char* seq, int N) {
 
 	for(int i = 0; i < N; i++) {
 		for(int j = i + 1; j < N; j++) {
-			type dist =distances[get_distance_index(i,j,N)];
+			type dist = distances[get_distance_index(i, j, N)];
 			if ((dist < 10.0f) &&
-				((hydrophobicity[seq[i]-65] != -1.0f) && (hydrophobicity[seq[j]-65] != -1.0f))) {
-				E += ((hydrophobicity[seq[i]-65] * hydrophobicity[seq[j]-65]) / (dist));
+				((hydrophobicity[seq[i] - 65] != -1.0f) && (hydrophobicity[seq[j] - 65] != -1.0f))) {
+				E += ((hydrophobicity[seq[i] - 65] * hydrophobicity[seq[j] - 65]) / (dist));
 			}
 		}
 	}
@@ -449,6 +447,7 @@ type rama_energy(VECTOR phi, VECTOR psi, int N) {
                                 ((psi[i] - beta_psi) * (psi[i] - beta_psi)));
 
         type min = alpha_dist;
+
         if (alpha_dist > beta_dist)
             min = beta_dist;
 
@@ -558,22 +557,26 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 void all_distances(int N) {
     int num_distances = (N * (N - 1)) / 2; 		// Numero di coppie uniche
-    distances = alloc_matrix(num_distances, 1);
+    
+	distances = alloc_matrix(num_distances, 1);
 
     int idx = 0;
+
     for (int i = 0; i < N; i++) {
         for (int j = i + 1; j < N; j++) {
             type dist = 0.0f;
-            type diff0 = coords[(i * 9) + 3 + 0] - coords[(j * 9) + 3 + 0];
+            
+			type diff0 = coords[(i * 9) + 3 + 0] - coords[(j * 9) + 3 + 0];
 			type diff1 = coords[(i * 9) + 3 + 1] - coords[(j * 9) + 3 + 1];
 			type diff2 = coords[(i * 9) + 3 + 2] - coords[(j * 9) + 3 + 2];
+			
 			dist = diff0 * diff0 + diff1 * diff1 + diff2 * diff2;
 
             distances[idx] = sqrtf(dist);
-            idx++;
+            
+			idx++;
         }
     }
-
 }
 
 int get_distance_index(int i, int j, int N) {
@@ -607,7 +610,6 @@ void normalize(VECTOR v) {
     	v[1] /= norm;
     	v[2] /= norm;
 	}
-
 }
 
 type cosine(type theta) {
@@ -659,7 +661,6 @@ MATRIX rotation(VECTOR axis, type theta) {
 }
 
 VECTOR apply_rotation(VECTOR vec, MATRIX rot) {
-
 	VECTOR ris= alloc_matrix(1,3);
 
     ris[0] = (rot[0] * vec[0]) + (rot[3] * vec[1]) + (rot[6] * vec[2]);
@@ -706,7 +707,7 @@ int main(int argc, char** argv) {
 		printf("\nParameters:\n");
 		printf("\tSEQ: il nome del file ds2 contenente la sequenza amminoacidica\n");
 		printf("\tto: parametro di temperatura\n");
-		printf("\talpha: tasso di raffredamento\n");
+		printf("\talpha: tasso di raffreddamento\n");
 		printf("\tk: costante\n");
 		printf("\tsd: seed per la generazione casuale\n");
 		printf("\nOptions:\n");
@@ -818,7 +819,7 @@ int main(int argc, char** argv) {
 
 	if(!input->silent){
 		printf("Dataset file name: '%s'\n", seqfilename);
-		printf("Sequence lenght: %d\n", input->N);
+		printf("Sequence length: %d\n", input->N);
 	}
 
 	// COMMENTARE QUESTA RIGA!
