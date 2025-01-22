@@ -626,8 +626,7 @@ MATRIX rotation(VECTOR axis, type theta) {
 	for(int i = 0; i < 9; i++)
 		rot[i] = 0;
 	
-	type scalar = sqrtf((axis[0]*axis[0]) + (axis[1]*axis[1]) + (axis[2]*axis[2]));
-	//type scalar = (axis[0]*axis[0]) + (axis[1]*axis[1]) + (axis[2]*axis[2]);
+	type scalar = sqrtf((axis[0] * axis[0]) + (axis[1] * axis[1]) + (axis[2] * axis[2]));
 	
 	axis[0] = axis[0] / scalar;
 	axis[1] = axis[1] / scalar;
@@ -643,18 +642,15 @@ MATRIX rotation(VECTOR axis, type theta) {
 	bcd[1] = (-1.0f) * (axis[1]) * (sine_theta);
 	bcd[2] = (-1.0f) * (axis[2]) * (sine_theta);
 
-	//printf("BCD: %.3f, %.3f, %.3f\n", bcd[0], bcd[1], bcd[2]);
-	//exit(0);
-
-	rot[0] = (a*a) + (bcd[0]*bcd[0]) - (bcd[1]*bcd[1]) - (bcd[2]*bcd[2]);
+	rot[0] = (a * a) + (bcd[0] * bcd[0]) - (bcd[1] * bcd[1]) - (bcd[2] * bcd[2]);
 	rot[1] = (2.0f) * ((bcd[0]) * (bcd[1]) + (a * bcd[2]));
 	rot[2] = (2.0f) * ((bcd[0]) * (bcd[2]) - (a * bcd[1]));
 	rot[3] = (2.0f) * ((bcd[0]) * (bcd[1]) - (a * bcd[2]));
-	rot[4] = (a*a) + (bcd[1]*bcd[1]) - (bcd[0]*bcd[0]) - (bcd[2]*bcd[2]);
+	rot[4] = (a * a) + (bcd[1] * bcd[1]) - (bcd[0] * bcd[0]) - (bcd[2] * bcd[2]);
 	rot[5] = (2.0f) * ((bcd[1]) * (bcd[2]) + (a * bcd[0]));
 	rot[6] = (2.0f) * ((bcd[0]) * (bcd[2]) + (a * bcd[1]));
 	rot[7] = (2.0f) * ((bcd[1]) * (bcd[2]) - (a * bcd[0]));
-	rot[8] = (a*a) + (bcd[2]*bcd[2]) - (bcd[0]*bcd[0]) - (bcd[1]*bcd[1]);
+	rot[8] = (a * a) + (bcd[2] * bcd[2]) - (bcd[0] * bcd[0]) - (bcd[1] * bcd[1]);
 
 	dealloc_matrix(bcd);
 
