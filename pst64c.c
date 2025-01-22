@@ -489,7 +489,7 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 		if (i > 0) {
 			// Parte di aggiornamento per l'atomo N
-			v1[0] = coords[((idx - 1) * 3) ] - coords[((idx - 2) * 3) + 0];
+			v1[0] = coords[((idx - 1) * 3) ] - coords[((idx - 2) * 3)];
 			v1[1] = coords[((idx - 1) * 3) + 1] - coords[((idx - 2) * 3) + 1];
 			v1[2] = coords[((idx - 1) * 3) + 2] - coords[((idx - 2) * 3) + 2];
 			
@@ -503,12 +503,12 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 			newv = apply_rotation(newv, rot);
 
-			coords[(idx * 3) + 0] = coords[((idx - 1) * 3) + 0] + (newv[0]);
+			coords[(idx * 3)] = coords[((idx - 1) * 3)] + (newv[0]);
 			coords[(idx * 3) + 1] = coords[((idx - 1) * 3) + 1] + (newv[1]);
 			coords[(idx * 3) + 2] = coords[((idx - 1) * 3) + 2] + (newv[2]);
 			
 			// Parte di aggiornamento per l'atomo C_a
-			v2[0] = coords[(idx * 3) + 0] - coords[((idx - 1) * 3) + 0];
+			v2[0] = coords[(idx * 3)] - coords[((idx - 1) * 3)];
 			v2[1] = coords[(idx * 3) + 1] - coords[((idx - 1) * 3) + 1];
 			v2[2] = coords[(idx * 3) + 2] - coords[((idx - 1) * 3) + 2];
 
@@ -522,13 +522,13 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 			newv = apply_rotation(newv, rot);
 			
-			coords[((idx + 1) * 3) + 0] = coords[((idx * 3)) + 0] + newv[0];
+			coords[((idx + 1) * 3)] = coords[((idx * 3))] + newv[0];
 			coords[((idx + 1) * 3) + 1] = coords[((idx * 3)) + 1] + newv[1];
 			coords[((idx + 1) * 3) + 2] = coords[((idx * 3)) + 2] + newv[2];
 		}
 
 		// Parte di aggiornamento per l'atomo C
-		v3[0] = coords[((idx + 1) * 3) + 0] - coords[(idx * 3) + 0];
+		v3[0] = coords[((idx + 1) * 3)] - coords[(idx * 3)];
 		v3[1] = coords[((idx + 1) * 3) + 1] - coords[(idx * 3) + 1];
 		v3[2] = coords[((idx + 1) * 3) + 2] - coords[(idx * 3) + 2];
 
@@ -542,7 +542,7 @@ void backbone(VECTOR phi, VECTOR psi, int N) {
 
 		newv = apply_rotation(newv, rot);
 
-		coords[((idx + 2) * 3) + 0] = coords[((idx + 1) * 3) + 0] + newv[0];
+		coords[((idx + 2) * 3)] = coords[((idx + 1) * 3)] + newv[0];
 		coords[((idx + 2) * 3) + 1] = coords[((idx + 1) * 3) + 1] + newv[1];
 		coords[((idx + 2) * 3) + 2] = coords[((idx + 1) * 3) + 2] + newv[2];    
 	}
@@ -566,7 +566,7 @@ void all_distances(int N) {
         for (int j = i + 1; j < N; j++) {
             type dist = 0.0f;
             
-			type diff0 = coords[(i * 9) + 3 + 0] - coords[(j * 9) + 3 + 0];
+			type diff0 = coords[(i * 9) + 3] - coords[(j * 9) + 3];
 			type diff1 = coords[(i * 9) + 3 + 1] - coords[(j * 9) + 3 + 1];
 			type diff2 = coords[(i * 9) + 3 + 2] - coords[(j * 9) + 3 + 2];
 			
