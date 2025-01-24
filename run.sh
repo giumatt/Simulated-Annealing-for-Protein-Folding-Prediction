@@ -18,6 +18,13 @@ commands=(
     "./OpenMP/runpst64_omp"
 )
 
+# Parameters
+SEQ="seq_256.ds2"
+TO=20
+K=1
+ALPHA=1
+SD=3
+
 if [[ "$choice" -ge 1 && "$choice" -le 6 ]]; then
     command="${commands[choice-1]}"
     echo "Executing: $command -seq $SEQ -to $TO -k $K -alpha $ALPHA -sd $SD -d"
