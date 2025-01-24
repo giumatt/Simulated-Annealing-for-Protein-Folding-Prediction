@@ -1,38 +1,28 @@
 #!/bin/bash
 
-echo "Choose the architecture to launch:"
-echo "1) 32-bit (runpst32)"
-echo "2) 64-bit (runpst64)"
-echo "3) 32-bit (runpst32_omp)"
-echo "4) 64-bit (runpst64_omp)"
+echo "Choose the architecture to run:"
+echo "1) 32-bit"
+echo "2) 64-bit"
+echo "3) 32-bit + SSE"
+echo "4) 64-bit + AVX"
+echo "5) 32-bit + OpenMP"
+echo "6) 64-bit + OpenMP"
 read -p "Type the number of your choice (1 or 2): " choice
 
-if [[ "$choice" == "1" ]]; then
-    command="./runpst32"
-elif [[ "$choice" == "2" ]]; then
-    command="./runpst64"
-elif [[ "$choice" == "3" ]]; then
-    command="./compile32omp"
-elif [[ "$choice" == "4" ]]; then
-    command="./compile64_omp"
+commands=(
+    "./C/runpst32"
+    "./C/runpst64"
+    "./C + SSE_AVX/runpst32"
+    "./C + SSE_AVX/runpst64"
+    "./OpenMP/runpst32_omp"
+    "./OpenMP/runpst64_omp"
+)
+
+if [[ "$choice" -ge 1 && "$choice" -le 6 ]]; then
+    command="${commands[choice-1]}"
+    echo "Executing: $command -seq $SEQ -to $TO -k $K -alpha $ALPHA -sd $SD -d"
+    eval "$command -seq $SEQ -to $TO -k $K -alpha $ALPHA -sd $SD -d"
 else
     echo "Invalid choice. Exiting."
     exit 1
-fi
-
-# Parameters
-SEQ="seq_256.ds2"
-TO=20
-K=1
-ALPHA=1
-SD=3
-
-if [[ "$command" == "./runpst64" ]]; then
-    "$command" -seq "$SEQ" -to "$TO" -k "$K" -alpha "$ALPHA" -sd "$SD" -d
-elif [[ "$choice" == "./compile32omp" ]]; then
-    "$command" -seq "$SEQ" -to "$TO" -k "$K" -alpha "$ALPHA" -sd "$SD" -d
-elif [[ "$choice" == "./compile64_omp" ]]; then
-    "$command" -seq "$SEQ" -to "$TO" -k "$K" -alpha "$ALPHA" -sd "$SD" -d
-else
-    "$command" -seq "$SEQ" -to "$TO" -k "$K" -alpha "$ALPHA" -sd "$SD" -d
 fi

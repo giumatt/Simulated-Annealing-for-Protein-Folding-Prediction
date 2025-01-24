@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ ! -e sseutils64.o ]]; then nasm -f elf64 sseutils64.nasm; fi;
+if [[ ! -e ../sseutils64.o ]]; then nasm -f elf64 sseutils64.nasm; fi;
 for f in $(ls *64.nasm); do
 	nasm -f elf64 $f;
 done;

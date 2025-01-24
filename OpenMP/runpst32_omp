@@ -1,5 +1,6 @@
 #!/bin/bash
-if [[ ! -f sseutils32.nasm ]]; then cp ../../sseutils32.nasm .; fi;
+
+if [[ ! -f ../sseutils32.nasm ]]; then cp ../../sseutils32.nasm .; fi;
 nasm -f elf32 sseutils32.nasm;
 for f in $(ls *32.nasm); do
 	nasm -f elf32 $f;
