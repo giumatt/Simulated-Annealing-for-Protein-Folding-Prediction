@@ -12,8 +12,8 @@ read -p "Type the number of your choice (1 or 2): " choice
 commands=(
     "./C/runpst32"
     "./C/runpst64"
-    "./C + SSE_AVX/runpst32"
-    "./C + SSE_AVX/runpst64"
+    "./C_SSE-AVX/runpst32"
+    "./C_SSE-AVX/runpst64"
     "./OpenMP/runpst32_omp"
     "./OpenMP/runpst64_omp"
 )

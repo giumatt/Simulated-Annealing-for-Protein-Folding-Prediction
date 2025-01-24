@@ -1,10 +1,9 @@
 #!/bin/bash
 
-if [[ ! -f ../sseutils64.nasm ]]; then cp ../../sseutils64.nasm .; fi;
-nasm -f elf64 sseutils64.nasm;
-for f in $(ls *64.nasm); do
+if [[ ! -e ../sseutils64.o ]]; then nasm -f elf64 sseutils64.nasm; fi;
+for f in $(ls OpenMP/*64c_omp.nasm); do
 	nasm -f elf64 $f;
 done;
-gcc -m64 -msse -mavx -O0 -no-pie -fopenmp sseutils64.o *64.o pst64c_omp.c -o pst64c_omp -lm
+gcc -m64 -msse -mavx -O0 -no-pie -fopenmp sseutils64.o OpenMP/*64c_omp.o OpenMP/pst64c_omp.c -o OpenMP/pst64c_omp -lm
 for arg; do pars=$pars" "$arg; done;
-./pst64c_omp $pars
+./OpenMP/pst64c_omp $pars

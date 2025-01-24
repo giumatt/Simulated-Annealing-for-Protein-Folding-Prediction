@@ -10,3 +10,7 @@ pst64c
 Utils/
 Progetto_Architetture_2024.pdf
 Domande.md
+C_SSE-AVX/pst32c_sse
+C_SSE-AVX/pst64c_avx
+OpenMP/pst32c_omp
+OpenMP/pst64c_omp

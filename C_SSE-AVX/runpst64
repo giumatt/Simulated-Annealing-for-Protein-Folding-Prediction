@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [[ ! -e ../sseutils64.o ]]; then nasm -f elf64 sseutils64.nasm; fi;
+for f in $(ls C_SSE-AVX/*64.nasm); do
+	nasm -f elf64 $f;
+done;
+gcc -B/usr/bin -B/usr/lib/gcc/x86_64-linux-gnu/7 -m64 -msse -O0 -no-pie sseutils64.o C_SSE-AVX/*64.o  C_SSE-AVX/pst64c_avx.c -o C_SSE-AVX/pst64c_avx -lm
+pars="";
+for arg; do pars=$pars" "$arg; done;
+./C_SSE-AVX/pst64c_avx $pars

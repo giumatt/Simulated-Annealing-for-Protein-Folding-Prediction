@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gcc -B/usr/bin -B/usr/lib/gcc/x86_64-linux-gnu/7 -m32 -msse -O0 -no-pie pst32c.c -o pst32c -lm
+gcc -B/usr/bin -B/usr/lib/gcc/x86_64-linux-gnu/7 -m32 -msse -O0 -no-pie C/pst32c.c -o C/pst32c -lm
 pars="";
 for arg; do pars=$pars" "$arg; done;
-./pst32c $pars
+./C/pst32c $pars
