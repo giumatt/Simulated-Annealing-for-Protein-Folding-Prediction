@@ -27,7 +27,7 @@ of the amino acid chain, minimizing the overall energy of the system.
 
 ### Installation (on Ubuntu):
 ```bash
-sudo apt-get install gcc nasm libc6-dev-i386 lib32gcc-10-dev
+sudo apt install gcc nasm libc6-dev-i386 lib32gcc-10-dev
 ```
 
 ---
@@ -85,7 +85,7 @@ aminoacidica, minimizzando l'energia complessiva del sistema.
 
 ### Installazione (su Ubuntu):
 ```bash
-sudo apt-get install gcc nasm libc6-dev-i386 lib32gcc-10-dev
+sudo apt install gcc nasm libc6-dev-i386 lib32gcc-10-dev
 ```
 
 ---
