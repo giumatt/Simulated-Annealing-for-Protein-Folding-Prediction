@@ -866,17 +866,17 @@ int main(int argc, char** argv) {
 	// Visualizza la sintassi del passaggio dei parametri da riga comandi
 	//
 	if(argc <= 1){
-		printf("%s -seq <SEQ> -to <to> -alpha <alpha> -k <k> -sd <sd> [-s] [-d]\n", argv[0]);
-		printf("\nParameters:\n");
-		printf("\tSEQ: il nome del file ds2 contenente la sequenza amminoacidica\n");
-		printf("\tto: parametro di temperatura\n");
-		printf("\talpha: tasso di raffreddamento\n");
-		printf("\tk: costante\n");
-		printf("\tsd: seed per la generazione casuale\n");
-		printf("\nOptions:\n");
-		printf("\t-s: modo silenzioso, nessuna stampa, default 0 - false\n");
-		printf("\t-d: stampa a video i risultati, default 0 - false\n");
-		exit(0);
+    	printf("%s -seq <SEQ> -to <to> -alpha <alpha> -k <k> -sd <sd> [-s] [-d]\n", argv[0]);
+    	printf("\nParameters:\n");
+    	printf("\tSEQ: the name of the ds2 file containing the amino acid sequence\n");
+    	printf("\tto: temperature parameter\n");
+    	printf("\talpha: cooling rate\n");
+    	printf("\tk: constant\n");
+    	printf("\tsd: seed for random generation\n");
+    	printf("\nOptions:\n");
+    	printf("\t-s: silent mode, no output, default 0 - false\n");
+    	printf("\t-d: print results to screen, default 0 - false\n");
+    	exit(0);
 	}
 
 	//
@@ -1008,9 +1008,9 @@ int main(int argc, char** argv) {
 	//
 	// Salva il risultato
 	//
-	sprintf(fname_phi, "out64_%d_%d_%.3f_%.3f_%.3f_phi.ds2", input->N, input->sd, input->to, input->alpha, input->k);
+	sprintf(fname_phi, "Outputs/out64_%d_%d_%.3f_%.3f_%.3f_phi.ds2", input->N, input->sd, input->to, input->alpha, input->k);
 	save_out(fname_phi, input->phi, input->N);
-	sprintf(fname_psi, "out64_%d_%d_%.3f_%.3f_%.3f_psi.ds2", input->N, input->sd, input->to, input->alpha, input->k);
+	sprintf(fname_psi, "Outputs/out64_%d_%d_%.3f_%.3f_%.3f_psi.ds2", input->N, input->sd, input->to, input->alpha, input->k);
 	save_out(fname_psi, input->psi, input->N);
 	if(input->display){
 		if(input->phi == NULL || input->psi == NULL)
