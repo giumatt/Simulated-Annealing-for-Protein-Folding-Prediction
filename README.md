@@ -43,7 +43,7 @@ Or simply run `run.sh` script.
 
 ### Example Execution:
 ```bash
-./pst32c -seq input.ds2 -to 100 -alpha 0.9 -k 1 -sd 42 [-s] [-d]
+./pst32c -seq input.ds2 -to 20 -alpha 1 -k 1 -sd 3 [-s] [-d]
 ```
 
 ---
@@ -100,7 +100,7 @@ nasm -f elf32 pst32.nasm && gcc -m32 -msse -O0 -no-pie sseutils32.o pst32.o pst3
 O semplicemente può essere eseguito lo script `run.sh`
 ### Esempio di esecuzione:
 ```bash
-./pst32c -seq input.ds2 -to 100 -alpha 0.9 -k 1 -sd 42 [-s] [-d]
+./pst32c -seq input.ds2 -to 20 -alpha 1 -k 1 -sd 3 [-s] [-d]
 ```
 
 ---
