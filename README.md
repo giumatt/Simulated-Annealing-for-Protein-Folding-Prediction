@@ -1,4 +1,3 @@
-![Protein structure](https://drive.google.com/file/d/16K0_OOhyxWFkrSZINSXbr5v31ks22DcW/view?usp=drivesdk)
 # **Protein Folding Prediction**
 
 ## **Project Description**
