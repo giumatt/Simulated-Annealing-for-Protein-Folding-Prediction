@@ -1,8 +1,8 @@
+# **Protein Folding Prediction**
+
 <p align="center">
   <img src="https://github.com/giumatt/Simulated-Annealing-for-Protein-Folding-Prediction/blob/main/protein_structure.gif?raw=true" alt="Protein structure">
 </p>
-
-# **Protein Folding Prediction**
 
 ## **Project Description**
 This project implements an algorithm for predicting the tertiary structure of proteins using the simulated annealing method.
@@ -60,7 +60,11 @@ Or simply run `run.sh` script.
 
 ---
 
-# **Predizione della Struttura delle Proteine**
+# **Predizione della Struttura Terziaria delle Proteine**
+
+<p align="center">
+  <img src="https://github.com/giumatt/Simulated-Annealing-for-Protein-Folding-Prediction/blob/main/protein_structure.gif?raw=true" alt="Protein structure">
+</p>
 
 ## **Descrizione del Progetto**
 Questo progetto implementa un algoritmo per la predizione della struttura terziaria delle proteine utilizzando il metodo del *simulated annealing*.
