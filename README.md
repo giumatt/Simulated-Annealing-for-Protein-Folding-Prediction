@@ -97,7 +97,7 @@ nasm -f elf32 pst32.nasm && gcc -m32 -msse -O0 -no-pie sseutils32.o pst32.o pst3
 ./pst32c -seq <file_sequenza> -to <temperatura_iniziale> -alpha <tasso_raffreddamento> -k <costante> -sd <seed>
 ```
 
-O semplicemente può essere eseguito lo script `run.sh"
+O semplicemente può essere eseguito lo script `run.sh`
 ### Esempio di esecuzione:
 ```bash
 ./pst32c -seq input.ds2 -to 100 -alpha 0.9 -k 1 -sd 42 [-s] [-d]
