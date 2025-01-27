@@ -1,4 +1,4 @@
-[Protein structure](https://github.com/giumatt/Simulated-Annealing-for-Protein-Folding-Prediction/blob/main/protein_structure.gif)
+![Protein structure](https://github.com/giumatt/Simulated-Annealing-for-Protein-Folding-Prediction/blob/main/protein_structure.gif)
 
 # **Protein Folding Prediction**
 
